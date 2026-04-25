@@ -1,0 +1,507 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body, .root {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--color-text-primary);
+    background: transparent;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+  }
+
+  .header {
+    border-bottom: 2px solid var(--color-border-primary);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .header .subtitle {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-right: 4px;
+  }
+
+  .tag-blue { background: #B5D4F4; color: #0C447C; }
+  .tag-amber { background: #FAC775; color: #633806; }
+  .tag-teal { background: #9FE1CB; color: #085041; }
+  .tag-red { background: #F7C1C1; color: #791F1F; }
+  .tag-purple { background: #CECBF6; color: #3C3489; }
+
+  .section {
+    margin-bottom: 1.4rem;
+  }
+
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-text-secondary);
+    border-left: 3px solid #378ADD;
+    padding-left: 8px;
+    margin-bottom: 0.6rem;
+  }
+
+  .highlight-yellow {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .highlight-blue {
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .highlight-green {
+    background: #dcfce7;
+    color: #166534;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .highlight-red {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .highlight-purple {
+    background: #ede9fe;
+    color: #5b21b6;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  p { margin-bottom: 0.5rem; font-size: 13px; }
+
+  .card {
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .card-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 0.3rem;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .mono {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+  }
+
+  .snr-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+    font-size: 12px;
+  }
+
+  .snr-label { width: 52px; text-align: right; font-size: 11px; color: var(--color-text-secondary); flex-shrink: 0; }
+  .snr-bar-bg { flex: 1; height: 8px; border-radius: 4px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); overflow: hidden; }
+  .snr-bar-fill { height: 100%; border-radius: 4px; }
+  .snr-desc { font-size: 11px; color: var(--color-text-secondary); width: 120px; flex-shrink: 0; }
+
+  .iq-diagram {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .mod-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 0.4rem;
+  }
+
+  .mod-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 0.5px solid var(--color-border-secondary);
+    color: var(--color-text-secondary);
+    background: var(--color-background-primary);
+  }
+
+  .divider {
+    border: none;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    margin: 1rem 0;
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .stat-box {
+    flex: 1;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+
+  .formula-box {
+    background: var(--color-background-primary);
+    border: 1px solid var(--color-border-secondary);
+    border-left: 3px solid #378ADD;
+    border-radius: 0 6px 6px 0;
+    padding: 0.6rem 0.8rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    margin: 0.5rem 0;
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    margin: 2px 0;
+    color: var(--color-text-secondary);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .note-box {
+    border: 1px dashed #FAC775;
+    background: #fefce8;
+    color: #713f12;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    font-size: 12px;
+    margin-top: 0.5rem;
+  }
+
+  .channel-states {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+  }
+
+  .ch-card {
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    font-size: 12px;
+  }
+
+  .ch-free { background: #dcfce7; color: #166534; border: 0.5px solid #C0DD97; }
+  .ch-busy { background: #dbeafe; color: #1e40af; border: 0.5px solid #B5D4F4; }
+  .ch-jammed { background: #fee2e2; color: #991b1b; border: 0.5px solid #F7C1C1; }
+
+  .ch-label { font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  table.mod-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.mod-table th { text-align: left; font-weight: 500; color: var(--color-text-secondary); font-size: 11px; padding: 4px 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  table.mod-table td { padding: 4px 6px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; }
+  table.mod-table tr:last-child td { border-bottom: none; }
+</style>
+
+<div class="page">
+
+  <div class="header">
+    <h1>RadioML 2018.01a — Reference Guide</h1>
+    <div class="subtitle">EE Semester 6 · CogniRad Project · IQ Signals &amp; Channel Classification</div>
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="stat-row">
+    <div class="stat-box">
+      <div class="stat-num">2.5M</div>
+      <div class="stat-lbl">total samples</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">1024</div>
+      <div class="stat-lbl">IQ pairs / sample</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">24</div>
+      <div class="stat-lbl">modulation types</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">26</div>
+      <div class="stat-lbl">SNR levels</div>
+    </div>
+  </div>
+
+  <!-- WHAT IS IT -->
+  <div class="section">
+    <div class="section-title">01 · What is RadioML 2018.01a?</div>
+    <p>A large, publicly available dataset of <span class="highlight-yellow">real radio signals</span> captured using physical <span class="highlight-blue">Software Defined Radio (SDR)</span> hardware by DeepSig. Because it comes from real antennas — not math simulations — it includes real-world impairments like <span class="highlight-red">frequency offset, phase noise, and timing jitter</span>. This makes models trained on it actually work in deployment.</p>
+    <p>It is the <span class="highlight-green">standard academic benchmark</span> — cited in 300+ IEEE papers — so you can compare your accuracy numbers directly against published results.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- IQ SAMPLES -->
+  <div class="section">
+    <div class="section-title">02 · IQ Samples — the core data format</div>
+    <p>Every digitized radio signal is stored as <span class="highlight-blue">IQ samples</span>. A sine wave at any instant can be described by two things:</p>
+
+    <div class="two-col" style="margin: 0.6rem 0;">
+      <div class="card">
+        <div class="card-title">I — In-phase component</div>
+        <p style="font-size:12px;">The <strong>real part</strong> of the signal. Think of it as the projection of the signal onto the horizontal axis of a circle.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Q — Quadrature component</div>
+        <p style="font-size:12px;">The <strong>imaginary part</strong>, shifted exactly 90° from I. Projection onto the vertical axis.</p>
+      </div>
+    </div>
+
+    <p>Together, one <span class="highlight-purple">(I, Q) pair</span> is a complete snapshot of the signal at one instant. A sequence of 1024 such pairs captures the full waveform in time.</p>
+
+    <div class="formula-box">
+      s(t)  =  I·cos(2πf·t)  −  Q·sin(2πf·t)
+    </div>
+    <p style="font-size:11px; color:var(--color-text-secondary); margin-top:2px;">This is how I and Q reconstruct the original signal at carrier frequency f.</p>
+
+    <!-- IQ WORKED EXAMPLE -->
+    <div class="card" style="margin-top: 0.8rem; border-left: 3px solid #7F77DD;">
+      <div class="card-title" style="color:#3C3489;">Worked Example — Reading an IQ sample</div>
+      <p style="font-size:12px; margin-bottom:0.5rem;">Say a BPSK transmitter sends a single bit. The dataset stores this as:</p>
+      <div class="mono" style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius:5px; padding: 0.5rem 0.75rem; font-size:11px; line-height:1.9;">
+        sample[0]  = ( I=+0.707 ,  Q=+0.000 )<br>
+        sample[1]  = ( I=+0.693 ,  Q=+0.141 )<br>
+        sample[2]  = ( I=+0.650 ,  Q=+0.277 )<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⋮<br>
+        sample[1023] = ( I=+0.707 ,  Q=−0.001 )
+      </div>
+      <p style="font-size:12px; margin-top:0.6rem;">Plotting these 1024 pairs on a 2D plane (I on x-axis, Q on y-axis) gives you the <span class="highlight-purple">constellation diagram</span>. For BPSK you would see two tight clusters — one at (+1, 0) and one at (−1, 0) — because BPSK only has two phase states.</p>
+
+      <!-- INLINE SVG CONSTELLATION -->
+      <svg viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:340px; display:block; margin:0.6rem auto 0.3rem;" class="iq-diagram">
+        <!-- axes -->
+        <line x1="20" y1="70" x2="320" y2="70" stroke="#B4B2A9" stroke-width="0.8"/>
+        <line x1="170" y1="10" x2="170" y2="130" stroke="#B4B2A9" stroke-width="0.8"/>
+        <!-- axis labels -->
+        <text x="314" y="80" font-size="10" fill="#888780" font-family="Space Mono, monospace">I</text>
+        <text x="173" y="15" font-size="10" fill="#888780" font-family="Space Mono, monospace">Q</text>
+        <text x="158" y="80" font-size="9" fill="#B4B2A9" font-family="Space Mono, monospace">0</text>
+        <!-- BPSK cluster right -->
+        <circle cx="255" cy="70" r="10" fill="#B5D4F4" stroke="#378ADD" stroke-width="1"/>
+        <circle cx="258" cy="67" r="2.5" fill="#185FA5"/>
+        <circle cx="252" cy="72" r="2.5" fill="#185FA5"/>
+        <circle cx="256" cy="71" r="2.5" fill="#185FA5"/>
+        <circle cx="254" cy="68" r="2.5" fill="#185FA5"/>
+        <text x="249" y="100" font-size="9" fill="#185FA5" font-family="Space Mono, monospace" text-anchor="middle">bit=1</text>
+        <!-- BPSK cluster left -->
+        <circle cx="85" cy="70" r="10" fill="#F7C1C1" stroke="#E24B4A" stroke-width="1"/>
+        <circle cx="82" cy="67" r="2.5" fill="#A32D2D"/>
+        <circle cx="88" cy="73" r="2.5" fill="#A32D2D"/>
+        <circle cx="85" cy="69" r="2.5" fill="#A32D2D"/>
+        <circle cx="84" cy="72" r="2.5" fill="#A32D2D"/>
+        <text x="85" y="100" font-size="9" fill="#A32D2D" font-family="Space Mono, monospace" text-anchor="middle">bit=0</text>
+        <!-- coord hints -->
+        <text x="248" y="62" font-size="8.5" fill="#378ADD" font-family="Space Mono, monospace">(+1, 0)</text>
+        <text x="68" y="62" font-size="8.5" fill="#E24B4A" font-family="Space Mono, monospace">(−1, 0)</text>
+        <!-- title -->
+        <text x="170" y="128" font-size="9" fill="#888780" font-family="DM Sans, sans-serif" text-anchor="middle">BPSK constellation — 1024 IQ pairs plotted</text>
+      </svg>
+      <p style="font-size:11px; color:var(--color-text-secondary);">Each dot above is one (I, Q) pair from the 1024-step sequence. The two clusters tell the CNN instantly: this is BPSK, not QAM, not FM.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SNR -->
+  <div class="section">
+    <div class="section-title">03 · SNR — Signal-to-Noise Ratio</div>
+    <p>SNR measures how much <span class="highlight-green">useful signal power</span> exists relative to <span class="highlight-red">background noise</span>. Expressed in dB.</p>
+    <div class="formula-box">
+      SNR (dB)  =  10 · log₁₀ ( P_signal / P_noise )
+    </div>
+
+    <div style="margin-top: 0.7rem;">
+      <div class="snr-bar-wrap">
+        <span class="snr-label">+30 dB</span>
+        <div class="snr-bar-bg"><div class="snr-bar-fill" style="width:100%; background:#16a34a;"></div></div>
+        <span class="snr-desc" style="color:#166534;">very clean, easy to classify</span>
+      </div>
+      <div class="snr-bar-wrap">
+        <span class="snr-label">+10 dB</span>
+        <div class="snr-bar-bg"><div class="snr-bar-fill" style="width:70%; background:#65a30d;"></div></div>
+        <span class="snr-desc" style="color:#3f6212;">mostly clean</span>
+      </div>
+      <div class="snr-bar-wrap">
+        <span class="snr-label">0 dB</span>
+        <div class="snr-bar-bg"><div class="snr-bar-fill" style="width:45%; background:#d97706;"></div></div>
+        <span class="snr-desc" style="color:#92400e;">signal = noise (hard)</span>
+      </div>
+      <div class="snr-bar-wrap">
+        <span class="snr-label">−10 dB</span>
+        <div class="snr-bar-bg"><div class="snr-bar-fill" style="width:25%; background:#dc2626;"></div></div>
+        <span class="snr-desc" style="color:#991b1b;">noise dominates</span>
+      </div>
+      <div class="snr-bar-wrap">
+        <span class="snr-label">−20 dB</span>
+        <div class="snr-bar-bg"><div class="snr-bar-fill" style="width:8%; background:#9f1239;"></div></div>
+        <span class="snr-desc" style="color:#9f1239;">100× noise power — near-blind</span>
+      </div>
+    </div>
+    <div class="note-box">
+      <strong>Why include low-SNR data?</strong> Real deployments face bad channel conditions. Training on all 26 SNR levels (−20 dB to +30 dB) forces the model to learn robust features, not just cherry-pick clean signals.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- MODULATIONS -->
+  <div class="section">
+    <div class="section-title">04 · 24 Modulation Types</div>
+    <p>Modulation = how information is encoded onto a carrier wave. Each type has a <span class="highlight-purple">distinct IQ signature</span>, which is what the CNN learns to distinguish.</p>
+    <table class="mod-table" style="margin-top:0.5rem;">
+      <thead><tr><th>Family</th><th>Types</th><th>What varies</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="tag tag-amber">Analog</span></td>
+          <td><span class="mono">OOK, AM-SSB, AM-DSB, FM, WBFM</span></td>
+          <td>amplitude or frequency continuously</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-blue">Phase (PSK)</span></td>
+          <td><span class="mono">BPSK, QPSK, 8PSK … 64PSK</span></td>
+          <td>phase only (discrete steps)</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-purple">Amp+Phase (QAM)</span></td>
+          <td><span class="mono">16QAM, 32QAM … 1024QAM</span></td>
+          <td>both amplitude and phase</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-teal">Frequency (FSK)</span></td>
+          <td><span class="mono">2FSK, 4FSK, 8FSK, 16FSK</span></td>
+          <td>frequency hops between states</td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-red">Spread Spectrum</span></td>
+          <td><span class="mono">OFDM variants</span></td>
+          <td>spread across many sub-carriers</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- COGNIRAD USE -->
+  <div class="section">
+    <div class="section-title">05 · How CogniRad uses this dataset</div>
+    <p>CogniRad does <span class="highlight-red">not</span> classify modulation types. Instead, the CNN uses the IQ patterns to classify <span class="highlight-yellow">channel state</span>:</p>
+    <div class="channel-states">
+      <div class="ch-card ch-free">
+        <div class="ch-label">Free</div>
+        <p style="font-size:11px; margin-top:3px;">Low energy, no meaningful signal. IQ values near zero.</p>
+      </div>
+      <div class="ch-card ch-busy">
+        <div class="ch-label">Busy</div>
+        <p style="font-size:11px; margin-top:3px;">Legitimate signal present. IQ matches known modulation patterns.</p>
+      </div>
+      <div class="ch-card ch-jammed">
+        <div class="ch-label">Jammed</div>
+        <p style="font-size:11px; margin-top:3px;">Anomalous IQ — high power, broadband noise, no clear modulation structure.</p>
+      </div>
+    </div>
+    <p style="margin-top:0.7rem; font-size:12px;">Jamming signals have a <span class="highlight-red">characteristic IQ signature</span> — the constellation plot smears across the plane with no clusters. The model learns to detect this pattern from the dataset's SNR and modulation variety.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- WHY SPECIAL -->
+  <div class="section">
+    <div class="section-title">06 · Why this dataset is academically significant</div>
+    <div class="three-col">
+      <div class="card" style="border-top: 2px solid #16a34a;">
+        <div class="card-title" style="font-size:12px;">Real hardware</div>
+        <p style="font-size:11px;">Actual SDR antennas. Real impairments. Better generalization than simulated data.</p>
+      </div>
+      <div class="card" style="border-top: 2px solid #378ADD;">
+        <div class="card-title" style="font-size:12px;">300+ IEEE papers</div>
+        <p style="font-size:11px;">Standard benchmark. Direct comparison with published accuracy numbers is possible.</p>
+      </div>
+      <div class="card" style="border-top: 2px solid #7F77DD;">
+        <div class="card-title" style="font-size:12px;">Publicly free</div>
+        <p style="font-size:11px;">DeepSig released it for research. Download, load in Python, start training immediately.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; font-size:10px; color:var(--color-text-secondary); margin-top:1rem; font-family:'Space Mono',monospace;">
+    CogniRad · EE Semester 6 · RadioML 2018.01a Reference
+  </div>
+
+</div>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#070d07" />
+  <title>COGNIRAD — TERMINAL</title>
+  
+  <script src="/static/js/auth.js"></script>
+  
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="app-loader">
+    <div class="waveform">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+    <div class="loader-text">ESTABLISHING CONNECTION...</div>
+  </div>
+
+  <!-- Notification Banner -->
+  <div id="notif-banner" class="notification-banner">
+    <div class="notif-title" id="notif-title">SYS_ALERT</div>
+    <div class="notif-body" id="notif-body">Incoming transmission...</div>
+  </div>
+
+  <div class="app-container">
+    
+    <!-- Shared Header -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="header-brand">
+          <span class="icon-wifi" aria-hidden="true">&#x2630;</span>
+          SIGINT_OS
+        </div>
+        <div class="header-badge" id="header-status">ENCRYPTED</div>
+      </div>
+      <div class="header-info">
+        <div>
+          <div class="operator-id">
+            <span class="status-dot"></span>
+            <span id="header-name">OPERATOR_ID</span>
+          </div>
+          <div class="operator-sub" id="header-sub">CHAN_PRIMARY // SUB_RAD_04</div>
+        </div>
+        <div class="freq-display">
+          <div class="freq-val" id="header-freq">--- MHz</div>
+          <div class="energy-bar"><div class="energy-fill" id="header-energy"></div></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Viewport Slider -->
+    <div class="view-slider">
+      
+      <!-- Layer 1: Contacts List -->
+      <div id="contacts-panel" class="panel">
+        <div class="contacts-scroll" id="contacts-list">
+          <!-- Populated via JS -->
+        </div>
+        <footer class="sys-strip">
+            <div class="sys-strip__item"><span class="dot"></span><span>NODE_GLOBAL</span></div>
+            <div class="sys-strip__item"><span class="dot"></span><span>ENCRYPT_AES256</span></div>
+        </footer>
+      </div>
+
+      <!-- Layer 2: Chat Panel -->
+      <div id="chat-panel" class="panel">
+        <div class="chat-header">
+          <div class="chat-back" id="chat-back-btn">&#x25C0;</div>
+          <div>
+            <div class="chat-title" id="chat-target-name">NODE_SIGMA</div>
+            <span class="chat-title-sub" id="chat-target-sub">Frequency locked</span>
+          </div>
+        </div>
+        
+        <div class="chat-scroll" id="chat-messages">
+          <!-- Populated via JS -->
+          <div class="empty-state">Secure channel established. Awaiting transmission...</div>
+        </div>
+
+        <div class="chat-input-bar">
+          <div class="chat-input-wrapper">
+            <input type="text" id="chat-input" class="chat-input" placeholder="ENTER_COMMAND_OR_MESSAGE..." autocomplete="off">
+          </div>
+          <button id="chat-send-btn" class="chat-send">&#x27A4;</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

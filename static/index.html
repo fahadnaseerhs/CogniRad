@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#070d07" />
+  <title>COGNIRAD — ACCESS GATEWAY</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- 3D WebGL wave background -->
+  <canvas id="wave-canvas" aria-hidden="true"></canvas>
+
+  <!-- Loading overlay (shown during auth transition) -->
+  <div id="loading-overlay" class="loading-overlay" aria-hidden="true">
+    <div class="loading-overlay__text">ESTABLISHING SECURE LINK...</div>
+    <div class="loading-bar-track">
+      <div class="loading-bar-fill"></div>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- Top status bar -->
+    <header class="status-bar" role="banner">
+      <span class="status-bar__brand">SIGINT_OS</span>
+      <div class="status-bar__right">
+        <span class="icon-signal" aria-hidden="true">(•)</span>
+        <span class="icon-wifi"   aria-hidden="true">&#x2607;</span>
+        <span class="status-dot" title="Node active"></span>
+      </div>
+    </header>
+
+    <!-- Node reference tag -->
+    <div class="node-ref" aria-hidden="true">NODE_SEC_402.001</div>
+
+    <!-- Main login area -->
+    <main class="login-container" role="main">
+
+      <div class="login-card" role="region" aria-label="Login form">
+
+        <!-- Card header -->
+        <div class="card-header">
+          <h1 class="card-header__title">ACCESS GATEWAY</h1>
+          <span class="card-header__divider" aria-hidden="true"></span>
+          <p class="card-header__sub">Restricted Clearance Required</p>
+        </div>
+
+        <!-- Login form -->
+        <form id="login-form" novalidate autocomplete="off">
+
+          <div class="form-group">
+            <label class="form-label" for="cms-input">ENTER THE CMS</label>
+            <div class="input-wrapper">
+              <input
+                id="cms-input"
+                class="form-input"
+                type="text"
+                placeholder="ENTER THE CMS"
+                maxlength="20"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                aria-required="true"
+                aria-describedby="error-msg"
+              />
+              <span class="input-icon" aria-hidden="true">&#x25A3;</span>
+            </div>
+          </div>
+
+          <!-- Error display -->
+          <div id="error-msg" class="error-msg" role="alert" aria-live="polite"></div>
+
+          <!-- Submit button -->
+          <button id="login-btn" class="btn-primary" type="submit">
+            <span id="btn-text">ESTABLISH LINK</span>
+            <span class="btn-icon" aria-hidden="true">&#x2630;</span>
+          </button>
+
+        </form>
+
+        <!-- Mini waveform decoration -->
+        <div class="waveform-mini" aria-hidden="true">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </div>
+
+      </div>
+
+      <!-- Footer branding -->
+      <div class="login-footer" aria-label="Application branding">
+        <div class="login-footer__brand">COGNIRAD</div>
+        <div class="login-footer__tagline">Secure Content Management System</div>
+      </div>
+
+    </main>
+
+    <!-- System status strip -->
+    <footer class="sys-strip" role="contentinfo">
+      <div class="sys-strip__item">
+        <span class="dot" aria-hidden="true"></span>
+        <span>NODE_GLOBAL</span>
+      </div>
+      <div class="sys-strip__item">
+        <span class="dot" aria-hidden="true"></span>
+        <span>ENCRYPT_AES256</span>
+      </div>
+    </footer>
+
+  </div><!-- /.page -->
+
+  <script src="/static/js/login.js"></script>
+</body>
+</html>

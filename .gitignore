@@ -1,0 +1,20 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Environments
+venv/
+env/
+ENV/
+.env
+
+# Database
+cognirad.db
+
+# Machine Learning & Large Data
+*.pt
+*.hdf5
+ml/dataset/
