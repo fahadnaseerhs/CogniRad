@@ -36,6 +36,8 @@ import contextlib
 import datetime as dt
 import json
 import logging
+import os
+import time
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
@@ -49,6 +51,7 @@ import channels as ch_mod
 import classifier
 import database
 import signal_physics as sp
+import terminal_dashboard as dashboard
 
 logger = logging.getLogger("cognirad")
 
@@ -62,6 +65,11 @@ async def _lifespan(application: FastAPI):
     await database.init_db()
     # Start the background AI loop
     task = asyncio.create_task(_ai_loop())
+    # Start the terminal dashboard (reads host/port from uvicorn config)
+    _host = os.environ.get("COGNIRAD_HOST", "127.0.0.1")
+    _port = int(os.environ.get("COGNIRAD_PORT", "8000"))
+    dashboard.set_server_url(_host, _port)
+    dashboard.start_dashboard()
     yield
     task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
@@ -196,7 +204,14 @@ manager = ConnectionManager()
 # ═══════════════════════════════════════════════════════════════════════════
 
 class LoginRequest(BaseModel):
-    cms_id: str
+    cms_id: str | None = None
+    cms: str | None = None
+
+    def resolved_cms(self) -> str:
+        value = (self.cms_id or self.cms or "").strip()
+        if not value:
+            raise HTTPException(status_code=422, detail="CMS ID is required.")
+        return value
 
 class LoginResponse(BaseModel):
     token: str
@@ -243,17 +258,32 @@ async def process_message(
     """
     End-to-end DM processing pipeline:
 
-    1. Compute message energy from text.
-    2. Update sender cumulative energy.
-    3. Get channel energy snapshot.
-    4. Classify channel using total energy.
+    1. Capture one shared timestamp (message_now) for the whole request.
+    2. Compute message energy from text.
+    3. Decay sender energy, then add message energy.
+    4. Classify channel using message_now as the decay baseline.
     5. If healthy → save DM, deliver to recipient, confirm to sender.
-    6. If overloaded → trigger decision engine, then deliver if possible.
+    6. If overloaded:
+       a. Attempt reallocation (passes message_now so ranking/projection
+          share the same decay baseline as the initial classify).
+       b. Reclassify with a fresh post_now — topology has changed so we
+          want the real post-move state, not a stale snapshot.
+       c. Apply delivery policy on post-move classification.
+    7. Build both sender MESSAGE_RESULT and recipient DM from the same
+       canonical final_result so both clients see consistent metadata.
 
     Returns a MESSAGE_RESULT dict for the sender.
     """
     channel_data = ch_mod.CHANNELS[channel_key]
     db_channel_id = int(channel_key.split("-")[1])
+    sender_channel_before = ch_mod.find_student_channel(sender_cms)
+    recipient_channel_before = ch_mod.find_student_channel(recipient_cms)
+
+    # ── 0. Capture one shared timestamp for the decision path ──────
+    # Every decay, classify, and allocator call up to (and including)
+    # the reallocation uses this same instant so no step can cross a
+    # decay-tick boundary mid-request and produce inconsistent results.
+    message_now = time.time()
 
     # ── 1. Compute message energy ──────────────────────────────────
     n_users = len(channel_data["users"])
@@ -262,10 +292,13 @@ async def process_message(
     )
 
     # ── 2. Update sender cumulative energy ─────────────────────────
+    # Decay to message_now first so the new energy is added on top of
+    # the current decayed baseline, not a stale accumulated total.
+    sp.apply_decay_to_student(sender_cms, now=message_now)
     new_total = sp.update_energy_score(sender_cms, msg_energy)
 
-    # ── 3-4. Classify channel ──────────────────────────────────────
-    result = classifier.classify_channel(channel_key)
+    # ── 3-4. Classify channel (using message_now) ──────────────────
+    result = classifier.classify_channel(channel_key, now=message_now)
     channel_data["status"] = result["status"]
     channel_data["message_rate"] += 1
 
@@ -282,18 +315,30 @@ async def process_message(
     accepted = is_ok
     warning = None
     reallocation_info = None
+    delivery_status = "DELIVERED"
+    # final_result starts as the initial classification; overwritten below
+    # if overload handling runs so both sender and recipient always see
+    # the same canonical post-decision channel metadata.
+    final_result = result
 
     if not is_ok:
-        # Channel is overloaded → trigger decision engine
+        # Channel is overloaded.  Pass message_now to the allocator so
+        # source ranking and destination projections share the same decay
+        # baseline as the initial classify above.
+        #
+        # Delivery policy:
+        #   FREE / BUSY  after decision → DELIVERED_AFTER_STABILIZATION
+        #   CONGESTED    after decision → DELIVERED_CHANNEL_DEGRADED
+        #   JAMMED       after decision → REJECTED_CHANNEL_JAMMED
         warning = (
             f"Channel {channel_key} is {result['status']} "
             f"(confidence={result['confidence']:.2f}). "
-            "Reallocation may be triggered."
+            "Attempting reallocation."
         )
-        moved = await allocator.reallocate_users(channel_key)
+        moved = await allocator.reallocate_users(channel_key, now=message_now)
         if moved:
             reallocation_info = moved
-            # Notify affected users
+            # Notify affected users of their new channel assignment
             for move in moved:
                 await manager.broadcast_to_channel(
                     move["to"],
@@ -315,23 +360,53 @@ async def process_message(
                     },
                 )
 
-        # Re-check if sender is still on the same channel after reallocation
-        current_ch = ch_mod.find_student_channel(sender_cms)
-        recipient_ch = ch_mod.find_student_channel(recipient_cms)
+        # Reclassify with a fresh timestamp after moves complete.
+        # We intentionally use a new post_now here (not message_now)
+        # because the channel topology has actually changed — users have
+        # moved — so we want the real current state, not a snapshot
+        # frozen at the moment the request arrived.
+        post_now = time.time()
+        post_result = classifier.classify_channel(channel_key, now=post_now)
+        channel_data["status"] = post_result["status"]
+        await database.update_channel_status(
+            db_channel_id,
+            post_result["status"],
+            post_result["confidence"],
+            is_jammed=(post_result["status"] == "JAMMED"),
+        )
 
-        if current_ch and recipient_ch and current_ch == recipient_ch:
-            accepted = True  # they're still together, allow the DM
-        else:
+        # Promote post_result to canonical so both sender and recipient
+        # see the same stabilised channel metadata.
+        final_result = post_result
+
+        # Apply delivery policy based on post-decision channel state
+        if post_result["status"] == "JAMMED":
+            # Channel is still jammed — reject the message entirely
             accepted = False
+            delivery_status = "REJECTED_CHANNEL_JAMMED"
             warning = (
-                f"Your DM could not be delivered: you or the recipient were "
-                f"reallocated to different channels."
+                f"Channel {channel_key} remains JAMMED after reallocation attempt. "
+                "Message rejected."
             )
+        elif post_result["status"] == "CONGESTED":
+            # Still congested but not jammed — deliver with warning
+            accepted = True
+            delivery_status = "DELIVERED_CHANNEL_DEGRADED"
+            warning = (
+                f"Channel {channel_key} is still CONGESTED after reallocation. "
+                "Message delivered under degraded conditions."
+            )
+        else:
+            # Channel recovered to FREE or BUSY — full delivery
+            accepted = True
+            delivery_status = "DELIVERED_AFTER_STABILIZATION"
+            warning = None
 
     # ── Save and deliver if accepted ───────────────────────────────
     delivered_at = None
     if accepted:
         delivered_at = dt.datetime.utcnow()
+        recipient_online = manager.is_online(recipient_cms)
         await database.save_message(
             channel_id=db_channel_id,
             cms=sender_cms,
@@ -342,7 +417,9 @@ async def process_message(
             delivered_at=delivered_at,
         )
 
-        # Deliver DM to recipient via WebSocket
+        # Deliver DM to recipient via WebSocket.
+        # Use final_result for signal metadata so recipient and sender
+        # both see the same canonical post-decision channel state.
         await manager.send_dm(
             sender_cms,
             recipient_cms,
@@ -350,32 +427,68 @@ async def process_message(
                 "type": "DM",
                 "from": sender_cms,
                 "from_name": sender_name,
+                "to": recipient_cms,
                 "text": text,
                 "channel_key": channel_key,
+                "sender_channel": sender_channel_before,
+                "recipient_channel": recipient_channel_before,
+                "route_type": (
+                    "same-channel"
+                    if sender_channel_before and sender_channel_before == recipient_channel_before
+                    else "cross-channel"
+                ),
                 "timestamp": delivered_at.isoformat(),
                 "signal": {
                     "energy": msg_energy,
                     "sender_total_energy": new_total,
-                    "channel_status": result["status"],
-                    "snr_db": result["snr_db"],
-                    "modulation": result["modulation"],
+                    # Use final_result here — same object used for the
+                    # sender response — so both clients are consistent.
+                    "channel_status": final_result["status"],
+                    "snr_db": final_result["snr_db"],
+                    "modulation": final_result["modulation"],
                 },
             },
         )
+        if not recipient_online:
+            delivery_status = "STORED_RECIPIENT_OFFLINE"
+            warning = "Recipient is offline. Message was stored but not delivered live."
 
     # ── Build result for sender ────────────────────────────────────
+    # final_result is the canonical post-decision classification.
+    # Both this dict and the recipient DM above use it, so sender and
+    # recipient always see the same channel health metadata.
+
+    # Feed the live terminal dashboard with this message event.
+    dashboard.record_message(
+        sender=sender_cms,
+        recipient=recipient_cms,
+        channel=channel_key,
+        energy=msg_energy,
+        status=final_result["status"],
+        delivery=delivery_status,
+    )
+
     return {
         "type": "MESSAGE_RESULT",
         "accepted": accepted,
         "to": recipient_cms,
         "text": text,
+        "delivery_status": delivery_status,
+        "sender_channel": sender_channel_before,
+        "recipient_channel": recipient_channel_before,
+        "route_type": (
+            "same-channel"
+            if sender_channel_before and sender_channel_before == recipient_channel_before
+            else "cross-channel"
+        ),
         "energy": msg_energy,
         "sender_total_energy": new_total,
         "classification": {
-            "status": result["status"],
-            "confidence": result["confidence"],
-            "snr_db": result["snr_db"],
-            "total_energy": result["total_energy"],
+            "status": final_result["status"],
+            "confidence": final_result["confidence"],
+            "snr_db": final_result["snr_db"],
+            "total_energy": final_result["total_energy"],
+            "modulation": final_result["modulation"],
         },
         "warning": warning,
         "reallocation": reallocation_info,
@@ -389,19 +502,57 @@ async def process_message(
 
 async def _ai_loop() -> None:
     """
-    Every 5 seconds, run the two-phase AI cycle:
+    Every 5 seconds, run the three-phase AI cycle:
 
-    Phase 1 — Observation: classify every channel using cumulative energy.
-    Phase 2 — Decision: reallocate minimum students from overloaded channels.
+    Phase 2 addition — Decay: apply idle energy decay to all students
+    before observing channel state.  This ensures classification and
+    reallocation decisions are based on time-accurate decayed energy,
+    not permanently accumulated totals.
+
+    Phase 1 — Observation: classify every channel using decayed energy.
+    Phase 2 — Decision: reallocate minimum students from channels that
+    are still overloaded *after* decay has had a chance to reduce load.
+
+    Order matters:
+        1. apply_idle_decay()          ← Phase 2: decay first
+        2. classify all channels       ← observe decayed state
+        3. reallocate overloaded ones  ← only if decay wasn't enough
     """
     while True:
         await asyncio.sleep(5)
         try:
+            # Capture one shared observation timestamp for the entire
+            # AI cycle.  Every decay call, snapshot, classification, and
+            # allocator projection in this tick will use this same instant
+            # so the whole cycle is internally consistent.
+            observation_now = time.time()
+
+            # ── Phase 2: Apply idle decay before observation ───────
+            # Decay all student energies so that inactive users cool
+            # down naturally.  Channels may recover from CONGESTED or
+            # BUSY to FREE without any reallocation if the load has
+            # simply gone quiet.
+            decay_summary = sp.apply_idle_decay(now=observation_now)
+            if decay_summary["decayed_count"] > 0:
+                logger.debug(
+                    "Idle decay applied: %d students decayed, "
+                    "total energy %.2f → %.2f",
+                    decay_summary["decayed_count"],
+                    decay_summary["before_total"],
+                    decay_summary["after_total"],
+                )
+
             # ── Phase 1: Observation ───────────────────────────────
+            # Classify every channel using the freshly decayed energy
+            # snapshots.  Pass the shared observation_now so all member
+            # decays within each snapshot use the same instant — no
+            # snapshot can span a tick boundary mid-loop.
             classifications: dict[str, classifier.ClassificationResult] = {}
             for ch_key in ch_mod.CHANNELS:
                 admin_jammed = ch_mod.CHANNELS[ch_key]["status"] == "JAMMED"
-                result = classifier.classify_channel(ch_key, admin_jammed=admin_jammed)
+                result = classifier.classify_channel(
+                    ch_key, admin_jammed=admin_jammed, now=observation_now
+                )
 
                 # Only update status if not admin-jammed (preserve admin control)
                 if not admin_jammed:
@@ -419,9 +570,15 @@ async def _ai_loop() -> None:
                 )
 
             # ── Phase 2: Decision ──────────────────────────────────
+            # Only reallocate channels that are still overloaded after
+            # decay.  If idle cooldown already brought a channel back
+            # to FREE or BUSY, no reallocation is needed — this is the
+            # key Phase 2 behaviour: decay suppresses unnecessary moves.
+            # Pass the shared observation_now so the allocator's source
+            # ranking and destination projections share the same baseline.
             for ch_key, result in classifications.items():
                 if not classifier.is_healthy(result) and result["member_count"] > 0:
-                    moved = await allocator.reallocate_users(ch_key)
+                    moved = await allocator.reallocate_users(ch_key, now=observation_now)
 
                     # Notify all affected users
                     for move in moved:
@@ -451,27 +608,101 @@ async def _ai_loop() -> None:
             logger.exception("AI loop error")
 
 
+async def _cli_dashboard() -> None:
+    """
+    Prints a mini admin portal on the terminal every 4 seconds with:
+    - Server link in red
+    - Channels energy progress bar
+    - Top active students progress bar
+    - Recent DMs
+    """
+    while True:
+        await asyncio.sleep(4)
+        try:
+            lines = [
+                "",
+                "\033[91m" + "="*60 + "\033[0m",
+                "\033[91m🚀 CogniRad Server Running -> http://localhost:8000\033[0m",
+                "\033[91m" + "="*60 + "\033[0m"
+            ]
+            
+            # Channels
+            lines.append("\n\033[1m📡 CHANNELS ENERGY\033[0m")
+            for ch_key, data in ch_mod.CHANNELS.items():
+                energy_snap = sp.get_channel_energy_snapshot(ch_key)
+                total = energy_snap["total_energy"]
+                status = data["status"]
+                
+                bar_len = 20
+                filled = int(min(total / 15.0, 1.0) * bar_len)
+                bar = "█" * filled + "░" * (bar_len - filled)
+                
+                if status in ["FREE", "BUSY"]:
+                    color = "\033[92m" # Green
+                elif status == "CONGESTED":
+                    color = "\033[93m" # Yellow
+                else:
+                    color = "\033[91m" # Red
+                    
+                lines.append(f"  {ch_key} {color}{bar}\033[0m {total:5.1f}e ({status})")
+
+            # Students
+            lines.append("\n\033[1m🎓 TOP ACTIVE STUDENTS\033[0m")
+            all_students = []
+            with sp._energy_lock:
+                for cms, ts in sp._energy_timestamps.items():
+                    energy = sp._energy_scores.get(cms, 0.0)
+                    if energy > 0:
+                        all_students.append((cms, energy))
+            all_students.sort(key=lambda x: x[1], reverse=True)
+            if not all_students:
+                lines.append("  (No active students)")
+            for cms, energy in all_students[:5]:
+                bar_len = 20
+                filled = int(min(energy / 10.0, 1.0) * bar_len)
+                bar = "█" * filled + "░" * (bar_len - filled)
+                lines.append(f"  {cms} \033[96m{bar}\033[0m {energy:5.1f}e")
+
+            # Messages
+            lines.append("\n\033[1m✉️  RECENT MESSAGES\033[0m")
+            if not RECENT_DMS:
+                lines.append("  (No recent messages)")
+            for msg in list(RECENT_DMS):
+                color = "\033[92m" if msg["status"] == "OK" else "\033[91m"
+                text_len = min(15, len(str(msg.get('text', ''))))
+                lines.append(f"  {msg['from']} -> {msg['to']} [{msg['ch']}] {color}{msg['status']}\033[0m (+{msg['energy']:.1f}e)")
+                
+            lines.append("\n" + "-"*60 + "\n")
+            
+            # Clear screen and print dashboard
+            print("\033[2J\033[H", end="")
+            print("\n".join(lines))
+        except Exception:
+            pass
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  Auth endpoints
 # ═══════════════════════════════════════════════════════════════════════════
 
 @app.post("/auth/login", response_model=LoginResponse, tags=["Auth"])
 async def login(body: LoginRequest):
+    cms_value = body.resolved_cms()
     try:
-        token = await auth.login_student(body.cms_id)
+        token = await auth.login_student(cms_value)
     except auth.AuthenticationError as exc:
         raise HTTPException(status_code=401, detail=str(exc))
         
-    db_student = await database.get_student_by_cms(body.cms_id)
-    name = db_student.name if db_student else body.cms_id
+    db_student = await database.get_student_by_cms(cms_value)
+    name = db_student.name if db_student else cms_value
     
-    ch_key = ch_mod.find_student_channel(body.cms_id)
+    ch_key = ch_mod.find_student_channel(cms_value)
     freq = ch_mod.CHANNELS[ch_key]["frequency"] if ch_key else None
     status_str = ch_mod.CHANNELS[ch_key]["status"] if ch_key else None
     
     return LoginResponse(
         token=token, 
-        cms=body.cms_id,
+        cms=cms_value,
         student_name=name,
         channel_id=ch_key,
         channel_freq=freq,
@@ -546,12 +777,11 @@ async def send_message_rest(body: SendDMRequest) -> dict[str, Any]:
     if recipient is None:
         raise HTTPException(status_code=404, detail=f"Recipient '{body.to}' not found.")
 
-    # Validate same channel
-    shared_ch = ch_mod.are_on_same_channel(student.cms, body.to)
-    if shared_ch is None:
+    sender_channel = ch_mod.find_student_channel(student.cms)
+    if sender_channel is None:
         raise HTTPException(
             status_code=400,
-            detail=f"You and {body.to} are not on the same channel.",
+            detail="You are not currently assigned to a channel.",
         )
 
     result = await process_message(
@@ -559,7 +789,7 @@ async def send_message_rest(body: SendDMRequest) -> dict[str, Any]:
         sender_name=student.name,
         recipient_cms=body.to,
         text=body.text,
-        channel_key=shared_ch,
+        channel_key=sender_channel,
     )
     return result
 
@@ -633,6 +863,32 @@ async def unjam_channel(body: JamRequest) -> dict[str, Any]:
     return {"unjammed": body.channel_key}
 
 
+@app.get("/students", tags=["Channels"])
+async def get_students(token: str) -> dict[str, Any]:
+    """Get all students (authenticated endpoint for non-admin users)."""
+    # Authenticate with student token
+    await _get_student(token)
+    
+    # Fetch all students
+    students = await database.get_all_students()
+    
+    # Return same format as /admin/students for compatibility
+    return {
+        "students": [
+            {
+                "cms": s.cms,
+                "name": s.name,
+                "channel_id": s.channel_id,
+                "channel_key": f"CH-{s.channel_id}" if s.channel_id else None,
+                "is_active": s.is_active,
+                "energy": sp.get_energy_score(s.cms),
+                "joined_at": s.joined_at.isoformat() if s.joined_at else None,
+            }
+            for s in students
+        ]
+    }
+
+
 @app.get("/admin/students", tags=["Admin"])
 async def list_students() -> dict[str, Any]:
     students = await database.get_all_students()
@@ -694,6 +950,7 @@ async def websocket_endpoint(ws: WebSocket, token: str):
         "name": student.name,
         "channel_key": ch_key,
         "peers": manager.get_reachable_peers(cms) if ch_key else [],
+        "all_online": [student_cms for student_cms in manager._connections if student_cms != cms],
     })
 
     try:
@@ -728,12 +985,11 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                 })
                 continue
 
-            # Validate same channel
-            shared_ch = ch_mod.are_on_same_channel(cms, to_cms)
-            if shared_ch is None:
+            sender_channel = ch_mod.find_student_channel(cms)
+            if sender_channel is None:
                 await manager.send_to(cms, {
                     "type": "ERROR",
-                    "detail": f"You and {to_cms} are not on the same channel.",
+                    "detail": "You are not currently assigned to a channel.",
                 })
                 continue
 
@@ -743,7 +999,7 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                 sender_name=student.name,
                 recipient_cms=to_cms,
                 text=text,
-                channel_key=shared_ch,
+                channel_key=sender_channel,
             )
 
             # Send result back to sender

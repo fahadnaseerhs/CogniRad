@@ -4,6 +4,11 @@ classifier.py — CogniRad | Channel Health Classifier
 Observation layer only.  Classifies current and projected channel states
 using cumulative energy, never decides movement directly.
 
+Phase 2: no direct decay logic here.  The classifier consumes decayed
+energy snapshots from signal_physics.get_channel_energy_snapshot, which
+applies idle decay before aggregation.  This keeps decay logic in a
+single source of truth (signal_physics.py) and prevents duplication.
+
 Public API
 ----------
 classify_channel(channel_id)                          → ClassificationResult
@@ -13,7 +18,7 @@ is_healthy(result)                                    → bool
 ClassificationResult is a TypedDict:
     status        : str     FREE | BUSY | CONGESTED | JAMMED
     confidence    : float   0.0–1.0
-    total_energy  : float
+    total_energy  : float   (post-decay in Phase 2)
     snr_db        : float
     modulation    : str
     per_student   : list    sorted contributor breakdown
@@ -117,20 +122,30 @@ def _classify_snapshot(snapshot: dict[str, Any], admin_jammed: bool = False) -> 
 # Public API
 # ---------------------------------------------------------------------------
 
-def classify_channel(channel_id: str, *, admin_jammed: bool = False) -> ClassificationResult:
+def classify_channel(channel_id: str, *, admin_jammed: bool = False, now: float | None = None) -> ClassificationResult:
     """
     Classify the *current real state* of a channel using cumulative energy.
 
     This is the primary observation function.  Call it from the AI loop
     and after every message send to decide channel health.
+
+    Phase 2: get_channel_energy_snapshot now applies idle decay before
+    aggregating per-student totals, so this function automatically
+    classifies based on decayed (time-accurate) energy without any extra
+    work here.  Decay logic stays in signal_physics.py only.
+
+    Snapshot consistency fix: accepts a shared `now` so that all member
+    decays within the snapshot use the same timestamp.  Pass the same
+    `now` to every classify call in one control cycle.
     """
-    snapshot = sp.get_channel_energy_snapshot(channel_id)
+    snapshot = sp.get_channel_energy_snapshot(channel_id, now=now)
     return _classify_snapshot(snapshot, admin_jammed=admin_jammed)
 
 
 def classify_channel_projected(
     channel_id: str,
     additional_energy: float,
+    now: float | None = None,
 ) -> ClassificationResult:
     """
     Classify what *would* happen if *additional_energy* were added to
@@ -138,11 +153,26 @@ def classify_channel_projected(
 
     Used by the allocator to test whether a destination can absorb a
     student before committing a move.
+
+    Phase 2: project_channel_energy now reads decayed per-student scores
+    via get_energy_score (decay-aware), so the projected total starts from
+    the current decayed baseline and then adds the incoming energy.
+    Formula: projected_total = decayed_current_total + additional_energy
+    No decay logic is duplicated here — it all lives in signal_physics.py.
+
+    Snapshot consistency fix: accepts a shared `now` so that the
+    projection uses the same decay baseline as the live snapshot taken
+    earlier in the same allocator decision cycle.  This prevents a
+    borderline healthy/unhealthy decision from flipping just because a
+    few milliseconds passed between the source ranking read and the
+    destination projection read.
     """
     import channels as ch_mod
 
     members = list(ch_mod.CHANNELS[channel_id]["users"])
-    projected_total = sp.project_channel_energy(channel_id, additional_energy)
+    # Pass the shared now so projection and live classification share the
+    # same decay baseline within one control cycle.
+    projected_total = sp.project_channel_energy(channel_id, additional_energy, now=now)
     n_users = len(members) + 1  # +1 because the student hasn't arrived yet
 
     snr = sp.derive_snr(projected_total, n_users)

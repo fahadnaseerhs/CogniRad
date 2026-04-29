@@ -3,6 +3,17 @@ allocator.py — CogniRad | Decision Engine
 ==========================================
 Energy-aware, fair, minimum-move reallocation engine.
 
+Phase 2: the allocator does not implement any decay logic itself.  It
+reads fresh decayed energy values from signal_physics via get_energy_score
+(which is decay-aware) and classify_channel_projected (which uses
+project_channel_energy, also decay-aware).  This keeps decay as a single
+source of truth in signal_physics.py and ensures the allocator always
+operates on post-decay state, never on stale accumulated totals.
+
+The AI loop in main.py calls apply_idle_decay() before calling
+reallocate_users(), so by the time the allocator runs, all energy values
+are already current.
+
 Public API
 ----------
 assign_channel(cms)                    → dict    Assign a new student to least-loaded channel.
@@ -24,6 +35,7 @@ Design Principles
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import channels as ch_mod
@@ -145,6 +157,7 @@ async def check_congestion() -> list[dict[str, Any]]:
 def _find_valid_destination(
     cms: str,
     source_key: str,
+    now: float | None = None,
 ) -> str | None:
     """
     Find a healthy destination channel for *cms*.
@@ -153,9 +166,17 @@ def _find_valid_destination(
     compute the projected energy if *cms* moved there with decayed energy.
     Accept only destinations that remain healthy after the move.
 
+    Phase 3: Gathers all valid candidates and deterministically chooses
+    the optimal destination based on:
+      1. Lowest projected total energy
+      2. Lowest projected confidence
+      3. Channel key (tie-breaker)
+
     Returns channel_key or None.
     """
-    decayed_energy = sp.get_energy_score(cms) * 0.5  # preview decay
+    decayed_energy = sp.get_energy_score(cms, now=now) * 0.5  # relocation carry-decay preview
+
+    valid_destinations = []
 
     for dest_key, dest_data in ch_mod.CHANNELS.items():
         if dest_key == source_key:
@@ -163,43 +184,67 @@ def _find_valid_destination(
         if dest_data["status"] == "JAMMED":
             continue
 
-        # Project destination health with this student's decayed energy
-        proj = classifier.classify_channel_projected(dest_key, decayed_energy)
+        # Project destination health with this student's decayed energy.
+        proj = classifier.classify_channel_projected(dest_key, decayed_energy, now=now)
         if classifier.is_healthy(proj):
-            return dest_key
+            valid_destinations.append({
+                "key": dest_key,
+                "total_energy": proj["total_energy"],
+                "confidence": proj["confidence"]
+            })
 
-    return None
+    if not valid_destinations:
+        return None
+
+    # Sort to find the optimal destination
+    valid_destinations.sort(key=lambda d: (d["total_energy"], d["confidence"], d["key"]))
+    return valid_destinations[0]["key"]
 
 
-async def reallocate_users(source_key: str) -> list[dict[str, Any]]:
+async def reallocate_users(source_key: str, now: float | None = None) -> list[dict[str, Any]]:
     """
     Move the minimum number of students off *source_key* to restore health.
 
     Algorithm
     ---------
-    1. Get all members sorted by energy (highest first).
-    2. Apply round-robin fairness pointer to rotate the start.
-    3. For each candidate:
-       a. Find a valid destination (projected-safe).
+    1. Capture one shared `now` for the entire decision cycle.
+    2. Get all members sorted by energy (highest first) using that `now`.
+    3. Apply round-robin fairness pointer to rotate the start.
+    4. For each candidate:
+       a. Find a valid destination (projected-safe, same `now`).
        b. Move the student (in-memory + DB).
        c. Decay their carried energy.
        d. Reclassify source — stop if healthy.
-    4. Return list of moves made.
+    5. Return list of moves made.
 
     Admin-forced JAMMED channels evacuate ALL users (pointer resets).
+
+    Snapshot consistency fix: a single `now` is captured at the top and
+    threaded through all energy reads, source ranking, and destination
+    projections.  This ensures the entire decision cycle uses one
+    consistent decay baseline — source ranking and destination validation
+    cannot diverge because a tick boundary was crossed mid-loop.
     """
     source_data = ch_mod.CHANNELS.get(source_key)
     if source_data is None or not source_data["users"]:
         return []
 
+    # Capture one shared observation timestamp for the entire decision
+    # cycle.  Every energy read, ranking, and projection in this call
+    # will use this same instant so decisions are internally consistent.
+    if now is None:
+        now = time.time()
+
     admin_jammed = source_data["status"] == "JAMMED"
     source_db_id = _channel_key_to_db_id(source_key)
 
-    # Build energy-sorted member list
+    # Build energy-sorted member list.
+    # Phase 2: get_energy_score is decay-aware.  Pass the shared `now`
+    # so ranking uses the same decay baseline as destination projections.
     members = list(source_data["users"])
     members_ranked = sorted(
         members,
-        key=lambda cms: sp.get_energy_score(cms),
+        key=lambda cms: sp.get_energy_score(cms, now=now),
         reverse=True,  # highest energy first
     )
 
@@ -213,8 +258,9 @@ async def reallocate_users(source_key: str) -> list[dict[str, Any]]:
         if cms not in source_data["users"]:
             continue  # already moved by a prior iteration
 
-        # Find a valid destination
-        dest_key = _find_valid_destination(cms, source_key)
+        # Find a valid destination using the shared now so the projection
+        # is consistent with the ranking done above.
+        dest_key = _find_valid_destination(cms, source_key, now=now)
         if dest_key is None:
             continue  # no safe destination — skip this student
 
@@ -228,7 +274,7 @@ async def reallocate_users(source_key: str) -> list[dict[str, Any]]:
         if cms not in dest_data["users"]:
             dest_data["users"].append(cms)
 
-        # Decay energy
+        # Decay energy on relocation (separate from idle decay)
         decayed = sp.decay_energy_on_reallocation(cms, factor=0.5)
 
         # DB
@@ -243,6 +289,8 @@ async def reallocate_users(source_key: str) -> list[dict[str, Any]]:
         })
 
         # ── Check if source is now healthy ──────────────────────
+        # Use a fresh wall-clock read here (not the shared `now`) because
+        # the move has just happened and we want the true current state.
         if not admin_jammed:
             src_result = classifier.classify_channel(source_key)
             source_data["status"] = src_result["status"]
