@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050608" />
+  <title>CogniRad — Spectrum Control</title>
+  <link rel="stylesheet" href="/static/css/admin.css" />
+</head>
+<body>
+
+  <!-- ── LOGIN ─────────────────────────────────────────────────────────── -->
+  <div id="login-view" class="login-view">
+    <form id="admin-login" class="login-panel">
+      <div class="brand-kicker">CogniRad Control</div>
+      <h1>Spectrum Admin</h1>
+      <label for="admin-password">Admin password</label>
+      <div class="password-row">
+        <input id="admin-password" name="admin-password" type="password"
+               autocomplete="current-password" autofocus placeholder="Enter password" />
+        <button type="button" id="toggle-pw" title="Show/hide password">👁</button>
+        <button type="submit">Unlock</button>
+      </div>
+      <p id="login-error" class="login-error" role="alert"></p>
+    </form>
+  </div>
+
+  <!-- ── MAIN APP ───────────────────────────────────────────────────────── -->
+  <main id="admin-app" class="admin-shell" hidden>
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand-kicker">CogniRad AI Reallocation</div>
+        <h1>Spectrum Control</h1>
+      </div>
+      <div class="topbar-center">
+        <div class="sys-clock" id="sys-clock">--:--:--</div>
+        <div class="feed-badge" id="feed-badge">
+          <span class="feed-dot"></span>
+          <span id="feed-label">CONNECTING</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a class="ghost-link" href="/docs" target="_blank" rel="noreferrer">API Docs</a>
+        <a class="ghost-link" href="/static/app.html" target="_blank" rel="noreferrer">Student App</a>
+        <button id="refresh-btn" type="button">↺ Refresh</button>
+        <button id="lock-btn" type="button" class="danger-muted">Lock</button>
+      </div>
+    </header>
+
+    <!-- Metric strip -->
+    <section class="metric-strip" aria-label="System metrics">
+      <div class="metric">
+        <span>Channels</span>
+        <strong id="metric-channels">5</strong>
+      </div>
+      <div class="metric">
+        <span>Students</span>
+        <strong id="metric-students">0</strong>
+      </div>
+      <div class="metric">
+        <span>Online</span>
+        <strong id="metric-online">0</strong>
+      </div>
+      <div class="metric">
+        <span>Total Energy</span>
+        <strong id="metric-energy">0.00 J</strong>
+      </div>
+      <div class="metric">
+        <span>Jammed</span>
+        <strong id="metric-jammed">0</strong>
+      </div>
+      <div class="metric">
+        <span>Reallocations</span>
+        <strong id="metric-reallocations">0</strong>
+      </div>
+    </section>
+
+    <!-- ── CHANNEL CONTROL ROW ─────────────────────────────────────────── -->
+    <section class="panel section-channels">
+      <div class="panel-head">
+        <div>
+          <h2>Channel Control</h2>
+          <div class="panel-sub">Live energy, status, and forced-jam controls for every frequency band.</div>
+        </div>
+      </div>
+      <div id="channel-grid" class="channel-grid"></div>
+    </section>
+
+    <!-- ── MAIN CONTENT GRID ───────────────────────────────────────────── -->
+    <div class="content-grid">
+
+      <!-- LEFT: Charts column -->
+      <div class="charts-column">
+
+        <!-- Energy per channel -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Energy per Channel</h2>
+              <div class="panel-sub">Cumulative RF energy (Joules) — 60-second rolling window.</div>
+            </div>
+            <div class="chart-legend" id="energy-legend"></div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="energy-chart"></canvas>
+          </div>
+        </section>
+
+        <!-- SNR continuous graph -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>SNR — Signal-to-Noise Ratio</h2>
+              <div class="panel-sub">Continuous SNR (dB) per channel. Below 5 dB triggers JAMMED.</div>
+            </div>
+            <div class="chart-legend" id="snr-legend"></div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="snr-chart"></canvas>
+          </div>
+        </section>
+
+        <!-- Predictive AI spectrum (slope/trend) -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Predictive AI — Energy Slope</h2>
+              <div class="panel-sub">J/s trend over 5-second window. Positive slope = congestion incoming.</div>
+            </div>
+            <div class="chart-legend" id="slope-legend"></div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="slope-chart"></canvas>
+          </div>
+        </section>
+
+        <!-- Round-robin allocator graph -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Round-Robin Allocator</h2>
+              <div class="panel-sub">Student occupancy per channel. Reallocation events shown as markers.</div>
+            </div>
+            <div class="chart-legend" id="member-legend"></div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="member-chart"></canvas>
+          </div>
+          <!-- Reallocation event markers -->
+          <div id="realloc-events" class="realloc-events"></div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT: Side column -->
+      <div class="side-column">
+
+        <!-- Active students (who is logged in + energy accumulating) -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Active Students</h2>
+              <div class="panel-sub">Online users and their accumulating RF energy.</div>
+            </div>
+          </div>
+          <div id="student-energy-list" class="student-energy-list"></div>
+        </section>
+
+        <!-- Live message feed -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Live Message Feed</h2>
+              <div class="panel-sub">Last 20 transmissions with PHY telemetry.</div>
+            </div>
+            <button id="clear-feed-btn" class="btn-xs" type="button">Clear</button>
+          </div>
+          <div id="msg-feed" class="msg-feed"></div>
+        </section>
+
+        <!-- Simulation -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Simulation</h2>
+              <div class="panel-sub">Seed a deterministic classroom load.</div>
+            </div>
+          </div>
+          <label class="field-label" for="energy-input">Energy per student (J)</label>
+          <div class="input-action">
+            <input id="energy-input" type="number" min="0" step="0.5" value="5" />
+            <button id="simulate-btn" type="button">Run</button>
+          </div>
+        </section>
+
+        <!-- Students table -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Students</h2>
+              <div class="panel-sub">Channel assignment and energy.</div>
+            </div>
+          </div>
+          <input id="student-search" class="search-input" type="search" placeholder="Search CMS or name" />
+          <div class="student-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>CMS</th>
+                  <th>Name</th>
+                  <th>Channel</th>
+                  <th>Energy</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="student-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Event log -->
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Event Log</h2>
+              <div class="panel-sub">Admin actions, reallocations, and system events.</div>
+            </div>
+            <button id="clear-log-btn" class="btn-xs" type="button">Clear</button>
+          </div>
+          <div id="event-log" class="event-log"></div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/js/admin.js?v=10"></script>
+</body>
+</html>

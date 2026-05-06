@@ -38,10 +38,12 @@ import json
 import logging
 import os
 import time
+from collections import deque
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -55,6 +57,20 @@ import terminal_dashboard as dashboard
 
 logger = logging.getLogger("cognirad")
 
+RECENT_DMS: deque[dict[str, Any]] = deque(maxlen=20)
+_last_send_ts: dict[str, float] = {}
+_FIRST_MESSAGE_DT: float = 60.0
+
+_spectrum_connections: set[WebSocket] = set()
+_energy_history: dict[str, deque[float]] = {
+    ch_key: deque(maxlen=20) for ch_key in ch_mod.CHANNELS
+}
+_reallocation_events: deque[dict[str, Any]] = deque(maxlen=50)
+_channel_reallocation_cooldowns: dict[str, float] = {}
+_AI_REALLOCATION_COOLDOWN_SECONDS: float = 3.0
+_PREDICTIVE_HORIZON_SECONDS: float = 5.0
+_PREDICTIVE_MIN_SLOPE_JPS: float = 0.25
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  App bootstrap
@@ -67,7 +83,7 @@ async def _lifespan(application: FastAPI):
     task = asyncio.create_task(_ai_loop())
     # Start the terminal dashboard (reads host/port from uvicorn config)
     _host = os.environ.get("COGNIRAD_HOST", "127.0.0.1")
-    _port = int(os.environ.get("COGNIRAD_PORT", "8000"))
+    _port = int(os.environ.get("COGNIRAD_PORT", "8080"))
     dashboard.set_server_url(_host, _port)
     dashboard.start_dashboard()
     yield
@@ -95,6 +111,11 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/admin", include_in_schema=False)
+async def admin_dashboard() -> FileResponse:
+    return FileResponse("static/admin.html")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -237,10 +258,19 @@ class ReallocateRequest(BaseModel):
     channel_key: str
     admin_key: str = "admin"
 
-ADMIN_KEY = "admin"
+class AdminAuthRequest(BaseModel):
+    admin_key: str
+
+
+class SimulateLoadRequest(BaseModel):
+    admin_key: str = "admin"
+    energy_per_student: float = 5.0
+
+
+ADMIN_KEY = os.environ.get("COGNIRAD_ADMIN_PASSWORD", "admin")
 
 def _check_admin(key: str) -> None:
-    if key != ADMIN_KEY:
+    if key.strip() != ADMIN_KEY.strip():
         raise HTTPException(status_code=403, detail="Invalid admin key.")
 
 
@@ -254,6 +284,7 @@ async def process_message(
     recipient_cms: str,
     text: str,
     channel_key: str,
+    dt_seconds: float | None = None,
 ) -> dict[str, Any]:
     """
     End-to-end DM processing pipeline:
@@ -287,9 +318,9 @@ async def process_message(
 
     # ── 1. Compute message energy ──────────────────────────────────
     n_users = len(channel_data["users"])
-    msg_energy = sp.compute_message_energy(
-        text, channel_key, concurrent_transmitters=n_users,
-    )
+    effective_dt = dt_seconds if dt_seconds is not None else _FIRST_MESSAGE_DT
+    phy_event = sp.compute_phy_event(text, channel_key, effective_dt, n_users)
+    msg_energy = phy_event["msg_energy"]
 
     # ── 2. Update sender cumulative energy ─────────────────────────
     # Decay to message_now first so the new energy is added on top of
@@ -405,7 +436,7 @@ async def process_message(
     # ── Save and deliver if accepted ───────────────────────────────
     delivered_at = None
     if accepted:
-        delivered_at = dt.datetime.utcnow()
+        delivered_at = dt.datetime.now(dt.timezone.utc)
         recipient_online = manager.is_online(recipient_cms)
         await database.save_message(
             channel_id=db_channel_id,
@@ -446,6 +477,14 @@ async def process_message(
                     "channel_status": final_result["status"],
                     "snr_db": final_result["snr_db"],
                     "modulation": final_result["modulation"],
+                    "phy": {
+                        "bits": phy_event["bits"],
+                        "dt_seconds": phy_event["dt_seconds"],
+                        "bitrate_bps": phy_event["bitrate_bps"],
+                        "utilization": phy_event["utilization"],
+                        "band": phy_event["band"],
+                        "capacity_bps": phy_event["capacity_bps"],
+                    },
                 },
             },
         )
@@ -466,6 +505,21 @@ async def process_message(
         energy=msg_energy,
         status=final_result["status"],
         delivery=delivery_status,
+        bitrate_bps=phy_event["bitrate_bps"],
+        dt_seconds=phy_event["dt_seconds"],
+        utilization=phy_event["utilization"],
+        band=phy_event["band"],
+        modulation=final_result["modulation"],
+    )
+    RECENT_DMS.append(
+        {
+            "from": sender_cms,
+            "to": recipient_cms,
+            "ch": channel_key,
+            "energy": msg_energy,
+            "status": "OK" if accepted else "ERR",
+            "text": text,
+        }
     )
 
     return {
@@ -490,6 +544,14 @@ async def process_message(
             "total_energy": final_result["total_energy"],
             "modulation": final_result["modulation"],
         },
+        "phy": {
+            "bits": phy_event["bits"],
+            "dt_seconds": phy_event["dt_seconds"],
+            "bitrate_bps": phy_event["bitrate_bps"],
+            "utilization": phy_event["utilization"],
+            "band": phy_event["band"],
+            "capacity_bps": phy_event["capacity_bps"],
+        },
         "warning": warning,
         "reallocation": reallocation_info,
         "timestamp": delivered_at.isoformat() if delivered_at else None,
@@ -500,67 +562,85 @@ async def process_message(
 #  AI Background Loop
 # ═══════════════════════════════════════════════════════════════════════════
 
-async def _ai_loop() -> None:
-    """
-    Every 5 seconds, run the three-phase AI cycle:
+def _compute_slope(history: deque[float] | list[float]) -> float:
+    if len(history) < 5:
+        return 0.0
+    recent = list(history)[-5:]
+    return round((recent[-1] - recent[0]) / 4.0, 4)
 
-    Phase 2 addition — Decay: apply idle energy decay to all students
-    before observing channel state.  This ensures classification and
-    reallocation decisions are based on time-accurate decayed energy,
-    not permanently accumulated totals.
 
-    Phase 1 — Observation: classify every channel using decayed energy.
-    Phase 2 — Decision: reallocate minimum students from channels that
-    are still overloaded *after* decay has had a chance to reduce load.
+def _is_reallocation_cooling_down(channel_key: str, now: float) -> bool:
+    return _channel_reallocation_cooldowns.get(channel_key, 0.0) > now
 
-    Order matters:
-        1. apply_idle_decay()          ← Phase 2: decay first
-        2. classify all channels       ← observe decayed state
-        3. reallocate overloaded ones  ← only if decay wasn't enough
-    """
-    while True:
-        await asyncio.sleep(5)
+
+def _predict_seconds_to_threshold(
+    current_energy: float,
+    slope_jps: float,
+    threshold_energy: float,
+) -> float | None:
+    if slope_jps <= 0 or current_energy >= threshold_energy:
+        return None
+    return max((threshold_energy - current_energy) / slope_jps, 0.0)
+
+
+def _should_preempt_channel(
+    result: classifier.ClassificationResult,
+    slope_jps: float,
+) -> bool:
+    if result["member_count"] <= 0 or slope_jps < _PREDICTIVE_MIN_SLOPE_JPS:
+        return False
+    _, _, congested_max, jammed_max = classifier.dynamic_thresholds(result["member_count"])
+    total_energy = float(result["total_energy"])
+    secs_to_congested = _predict_seconds_to_threshold(total_energy, slope_jps, congested_max)
+    secs_to_jammed = _predict_seconds_to_threshold(total_energy, slope_jps, jammed_max)
+    return (
+        (secs_to_congested is not None and secs_to_congested <= _PREDICTIVE_HORIZON_SECONDS)
+        or (secs_to_jammed is not None and secs_to_jammed <= _PREDICTIVE_HORIZON_SECONDS)
+    )
+
+
+async def _broadcast_spectrum(payload: dict[str, Any]) -> None:
+    dead: list[WebSocket] = []
+    for ws in list(_spectrum_connections):
         try:
-            # Capture one shared observation timestamp for the entire
-            # AI cycle.  Every decay call, snapshot, classification, and
-            # allocator projection in this tick will use this same instant
-            # so the whole cycle is internally consistent.
-            observation_now = time.time()
+            await ws.send_json(payload)
+        except Exception:
+            dead.append(ws)
+    for ws in dead:
+        _spectrum_connections.discard(ws)
 
-            # ── Phase 2: Apply idle decay before observation ───────
-            # Decay all student energies so that inactive users cool
-            # down naturally.  Channels may recover from CONGESTED or
-            # BUSY to FREE without any reallocation if the load has
-            # simply gone quiet.
+async def _ai_loop() -> None:
+    """Observe every second and reallocate reactively or pre-emptively."""
+    while True:
+        await asyncio.sleep(1)
+        try:
+            observation_now = time.time()
             decay_summary = sp.apply_idle_decay(now=observation_now)
             if decay_summary["decayed_count"] > 0:
                 logger.debug(
-                    "Idle decay applied: %d students decayed, "
-                    "total energy %.2f → %.2f",
+                    "Idle decay applied: %d students decayed, total energy %.2f -> %.2f",
                     decay_summary["decayed_count"],
                     decay_summary["before_total"],
                     decay_summary["after_total"],
                 )
 
-            # ── Phase 1: Observation ───────────────────────────────
-            # Classify every channel using the freshly decayed energy
-            # snapshots.  Pass the shared observation_now so all member
-            # decays within each snapshot use the same instant — no
-            # snapshot can span a tick boundary mid-loop.
             classifications: dict[str, classifier.ClassificationResult] = {}
+            channel_snapshots: dict[str, dict[str, Any]] = {}
+            tick_events: list[dict[str, Any]] = []
             for ch_key in ch_mod.CHANNELS:
-                admin_jammed = ch_mod.CHANNELS[ch_key]["status"] == "JAMMED"
+                admin_jammed = bool(ch_mod.CHANNELS[ch_key].get("admin_forced_jammed", False))
                 result = classifier.classify_channel(
                     ch_key, admin_jammed=admin_jammed, now=observation_now
                 )
+                snap = sp.get_channel_energy_snapshot(ch_key, now=observation_now)
+                channel_snapshots[ch_key] = snap
+                _energy_history[ch_key].append(float(snap["total_energy"]))
 
-                # Only update status if not admin-jammed (preserve admin control)
                 if not admin_jammed:
                     ch_mod.CHANNELS[ch_key]["status"] = result["status"]
 
                 classifications[ch_key] = result
 
-                # Sync to DB
                 db_id = int(ch_key.split("-")[1])
                 await database.update_channel_status(
                     db_id,
@@ -569,40 +649,78 @@ async def _ai_loop() -> None:
                     is_jammed=admin_jammed,
                 )
 
-            # ── Phase 2: Decision ──────────────────────────────────
-            # Only reallocate channels that are still overloaded after
-            # decay.  If idle cooldown already brought a channel back
-            # to FREE or BUSY, no reallocation is needed — this is the
-            # key Phase 2 behaviour: decay suppresses unnecessary moves.
-            # Pass the shared observation_now so the allocator's source
-            # ranking and destination projections share the same baseline.
             for ch_key, result in classifications.items():
-                if not classifier.is_healthy(result) and result["member_count"] > 0:
-                    moved = await allocator.reallocate_users(ch_key, now=observation_now)
+                if result["member_count"] <= 0:
+                    continue
+                if _is_reallocation_cooling_down(ch_key, observation_now):
+                    continue
 
-                    # Notify all affected users
-                    for move in moved:
-                        await manager.send_to(
-                            move["cms"],
-                            {
-                                "type": "REALLOCATED",
-                                "from": move["from"],
-                                "to": move["to"],
-                                "frequency": move["frequency"],
-                                "decayed_energy": move.get("decayed_energy"),
-                            },
-                        )
+                slope = _compute_slope(_energy_history[ch_key])
+                predictive_trigger = _should_preempt_channel(result, slope)
+                reactive_trigger = not classifier.is_healthy(result)
+                if not reactive_trigger and not predictive_trigger:
+                    continue
 
-                    if moved:
-                        await manager.broadcast_to_channel(
-                            ch_key,
-                            {
-                                "type": "SYSTEM",
-                                "subtype": "CHANNEL_REBALANCED",
-                                "channel_key": ch_key,
-                                "moved_count": len(moved),
-                            },
-                        )
+                moved = await allocator.reallocate_users(ch_key, now=observation_now)
+                if not moved:
+                    continue
+
+                _channel_reallocation_cooldowns[ch_key] = (
+                    observation_now + _AI_REALLOCATION_COOLDOWN_SECONDS
+                )
+
+                for move in moved:
+                    await manager.send_to(
+                        move["cms"],
+                        {
+                            "type": "REALLOCATED",
+                            "from": move["from"],
+                            "to": move["to"],
+                            "frequency": move["frequency"],
+                            "decayed_energy": move.get("decayed_energy"),
+                        },
+                    )
+                    event = {
+                        "type": "REALLOCATION",
+                        "timestamp": observation_now,
+                        "from": move["from"],
+                        "to": move["to"],
+                        "user": move["cms"],
+                        "reason": "predictive" if predictive_trigger and not reactive_trigger else "reactive",
+                    }
+                    tick_events.append(event)
+                    _reallocation_events.append(event)
+
+                await manager.broadcast_to_channel(
+                    ch_key,
+                    {
+                        "type": "SYSTEM",
+                        "subtype": "CHANNEL_REBALANCED",
+                        "channel_key": ch_key,
+                        "moved_count": len(moved),
+                    },
+                )
+
+            if _spectrum_connections:
+                await _broadcast_spectrum(
+                    {
+                        "type": "SPECTRUM_TICK",
+                        "timestamp": observation_now,
+                        "channels": {
+                            ch_key: {
+                                "energy": channel_snapshots[ch_key]["total_energy"],
+                                "snr_db": channel_snapshots[ch_key]["snr_db"],
+                                "modulation": channel_snapshots[ch_key]["modulation"],
+                                "modulation_index": channel_snapshots[ch_key]["modulation_index"],
+                                "member_count": channel_snapshots[ch_key]["member_count"],
+                                "status": classifications[ch_key]["status"],
+                                "slope": _compute_slope(_energy_history[ch_key]),
+                            }
+                            for ch_key in ch_mod.CHANNELS
+                        },
+                        "events": tick_events,
+                    }
+                )
 
         except Exception:
             logger.exception("AI loop error")
@@ -622,7 +740,7 @@ async def _cli_dashboard() -> None:
             lines = [
                 "",
                 "\033[91m" + "="*60 + "\033[0m",
-                "\033[91m🚀 CogniRad Server Running -> http://localhost:8000\033[0m",
+                "\033[91m🚀 CogniRad Server Running -> http://localhost:8080\033[0m",
                 "\033[91m" + "="*60 + "\033[0m"
             ]
             
@@ -819,6 +937,11 @@ async def get_messages(channel_id: int, limit: int = 30) -> dict[str, Any]:
 #  Admin endpoints
 # ═══════════════════════════════════════════════════════════════════════════
 
+@app.post("/admin/verify", tags=["Admin"])
+async def verify_admin(body: AdminAuthRequest) -> dict[str, Any]:
+    _check_admin(body.admin_key)
+    return {"ok": True}
+
 @app.post("/admin/jam", tags=["Admin"])
 async def jam_channel(body: JamRequest) -> dict[str, Any]:
     _check_admin(body.admin_key)
@@ -826,6 +949,7 @@ async def jam_channel(body: JamRequest) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=f"Unknown channel: {body.channel_key}")
 
     ch_mod.CHANNELS[body.channel_key]["status"] = "JAMMED"
+    ch_mod.CHANNELS[body.channel_key]["admin_forced_jammed"] = True
     db_id = int(body.channel_key.split("-")[1])
     await database.update_channel_status(db_id, "JAMMED", 1.0, is_jammed=True)
 
@@ -858,6 +982,7 @@ async def unjam_channel(body: JamRequest) -> dict[str, Any]:
     ch_mod.CHANNELS[body.channel_key]["status"] = "FREE"
     ch_mod.CHANNELS[body.channel_key]["rolling_jammed_score"] = 0.0
     ch_mod.CHANNELS[body.channel_key]["transmit_frozen"] = False
+    ch_mod.CHANNELS[body.channel_key]["admin_forced_jammed"] = False
     db_id = int(body.channel_key.split("-")[1])
     await database.update_channel_status(db_id, "FREE", 0.0, is_jammed=False)
     return {"unjammed": body.channel_key}
@@ -881,6 +1006,7 @@ async def get_students(token: str) -> dict[str, Any]:
                 "channel_id": s.channel_id,
                 "channel_key": f"CH-{s.channel_id}" if s.channel_id else None,
                 "is_active": s.is_active,
+                "is_online": manager.is_online(s.cms),
                 "energy": sp.get_energy_score(s.cms),
                 "joined_at": s.joined_at.isoformat() if s.joined_at else None,
             }
@@ -890,7 +1016,8 @@ async def get_students(token: str) -> dict[str, Any]:
 
 
 @app.get("/admin/students", tags=["Admin"])
-async def list_students() -> dict[str, Any]:
+async def list_students(admin_key: str) -> dict[str, Any]:
+    _check_admin(admin_key)
     students = await database.get_all_students()
     return {
         "students": [
@@ -900,6 +1027,7 @@ async def list_students() -> dict[str, Any]:
                 "channel_id": s.channel_id,
                 "channel_key": f"CH-{s.channel_id}" if s.channel_id else None,
                 "is_active": s.is_active,
+                "is_online": manager.is_online(s.cms),
                 "energy": sp.get_energy_score(s.cms),
                 "joined_at": s.joined_at.isoformat() if s.joined_at else None,
             }
@@ -916,6 +1044,68 @@ async def admin_reallocate(body: ReallocateRequest) -> dict[str, Any]:
 
     moved = await allocator.reallocate_users(body.channel_key)
     return {"channel": body.channel_key, "moved": moved}
+
+
+@app.post("/admin/simulate_load", tags=["Admin"])
+async def simulate_load(body: SimulateLoadRequest) -> dict[str, Any]:
+    _check_admin(body.admin_key)
+
+    all_students = await database.get_all_students()
+
+    def _cms_sort_key(student: database.Student) -> int:
+        try:
+            return int(student.cms)
+        except ValueError:
+            return 10 ** 12
+
+    sorted_students = sorted(all_students, key=_cms_sort_key)
+    students_to_assign = sorted_students[:25]
+
+    for ch_key in ch_mod.CHANNELS:
+        ch_mod.CHANNELS[ch_key]["users"].clear()
+        ch_mod.CHANNELS[ch_key]["status"] = "FREE"
+        ch_mod.CHANNELS[ch_key]["message_rate"] = 0
+        ch_mod.CHANNELS[ch_key]["admin_forced_jammed"] = False
+
+    channel_keys = list(ch_mod.CHANNELS.keys())
+    assignments: dict[str, list[str]] = {ch: [] for ch in channel_keys}
+
+    for idx, student in enumerate(students_to_assign):
+        ch_key = channel_keys[idx // 5]
+        db_ch_id = int(ch_key.split("-")[1])
+        if student.cms not in ch_mod.CHANNELS[ch_key]["users"]:
+            ch_mod.CHANNELS[ch_key]["users"].append(student.cms)
+        await database.assign_student_to_channel(student.cms, db_ch_id)
+        sp.set_energy_score(student.cms, round(body.energy_per_student, 4))
+        assignments[ch_key].append(student.cms)
+
+    channel_results: dict[str, str] = {}
+    for ch_key in channel_keys:
+        result = classifier.classify_channel(ch_key)
+        ch_mod.CHANNELS[ch_key]["status"] = result["status"]
+        db_ch_id = int(ch_key.split("-")[1])
+        await database.update_channel_status(
+            db_ch_id,
+            result["status"],
+            result["confidence"],
+            is_jammed=(result["status"] == "JAMMED"),
+        )
+        channel_results[ch_key] = result["status"]
+
+    return {
+        "simulated": True,
+        "students_assigned": len(students_to_assign),
+        "energy_per_student": body.energy_per_student,
+        "channels": {
+            ch_key: {
+                "students": assignments[ch_key],
+                "count": len(assignments[ch_key]),
+                "status": channel_results[ch_key],
+                "frequency": ch_mod.CHANNELS[ch_key]["frequency"],
+            }
+            for ch_key in channel_keys
+        },
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -993,6 +1183,10 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                 })
                 continue
 
+            ws_now = time.time()
+            dt_seconds = ws_now - _last_send_ts.get(cms, ws_now - _FIRST_MESSAGE_DT)
+            _last_send_ts[cms] = ws_now
+
             # ── Process the DM ─────────────────────────────────────
             result = await process_message(
                 sender_cms=cms,
@@ -1000,6 +1194,7 @@ async def websocket_endpoint(ws: WebSocket, token: str):
                 recipient_cms=to_cms,
                 text=text,
                 channel_key=sender_channel,
+                dt_seconds=dt_seconds,
             )
 
             # Send result back to sender
@@ -1012,6 +1207,93 @@ async def websocket_endpoint(ws: WebSocket, token: str):
         logger.exception(f"WebSocket error for {cms}")
 
 
+@app.websocket("/ws/spectrum")
+async def spectrum_websocket(ws: WebSocket):
+    await ws.accept()
+    _spectrum_connections.add(ws)
+
+    try:
+        await ws.send_json(
+            {
+                "type": "SPECTRUM_HISTORY",
+                "channels": {
+                    ch_key: list(_energy_history[ch_key])
+                    for ch_key in ch_mod.CHANNELS
+                },
+                "recent_events": list(_reallocation_events),
+            }
+        )
+
+        while True:
+            await ws.receive_text()
+
+    except (WebSocketDisconnect, Exception):
+        pass
+    finally:
+        _spectrum_connections.discard(ws)
+
+
 if __name__ == "__main__":
+    import argparse
+    import threading
+    import webbrowser
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+    parser = argparse.ArgumentParser(description="CogniRad Spectrum Management Server")
+    parser.add_argument("--simulate", action="store_true",
+                        help="Auto-open browser tabs for 25 bot students after startup")
+    parser.add_argument("--host", default="0.0.0.0", help="Bind host (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=8080, help="Bind port (default: 8080)")
+    args, _ = parser.parse_known_args()
+
+    if args.simulate:
+        def _launch_browser():
+            import json as _json
+            # Wait for uvicorn to finish binding before opening tabs
+            time.sleep(2.5)
+
+            try:
+                with open("students.json", "r", encoding="utf-8") as f:
+                    data = _json.load(f)
+                # Sort numerically ascending — same order as /admin/simulate_load
+                all_cms = sorted(
+                    data.keys(),
+                    key=lambda x: int(x) if x.isdigit() else 10 ** 12
+                )
+            except Exception as exc:
+                print(f"[simulate] Could not load students.json: {exc}")
+                return
+
+            # 5 channels × 5 students = 25 tabs
+            num_channels = 5
+            students_per_channel = 5
+            total = num_channels * students_per_channel
+
+            # Slice into per-channel buckets then interleave so the
+            # round-robin allocator distributes them evenly
+            buckets = [
+                all_cms[i * students_per_channel: (i + 1) * students_per_channel]
+                for i in range(num_channels)
+            ]
+            sequence = [
+                buckets[ch][slot]
+                for slot in range(students_per_channel)
+                for ch in range(num_channels)
+                if slot < len(buckets[ch])
+            ]
+
+            base_url = f"http://127.0.0.1:{args.port}"
+            print(f"[simulate] Opening {len(sequence)} browser tabs…")
+            for cms in sequence:
+                url = f"{base_url}/static/index.html?auto_login={cms}&bot=true"
+                webbrowser.open_new_tab(url)
+                # 1-second gap so the backend assigns them in clean round-robin order
+                time.sleep(1.0)
+
+            print("[simulate] All tabs opened. Bots are now chatting.")
+
+        threading.Thread(target=_launch_browser, daemon=True).start()
+
+    # Disable reload in simulate mode — live-reload kills the bot sessions
+    use_reload = not args.simulate
+    uvicorn.run("main:app", host=args.host, port=args.port, reload=use_reload)

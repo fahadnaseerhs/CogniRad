@@ -23,8 +23,27 @@
 
   <!-- Notification Banner -->
   <div id="notif-banner" class="notification-banner">
-    <div class="notif-title" id="notif-title">SYS_ALERT</div>
+    <div class="notif-header">
+      <div class="notif-dot"></div>
+      <div class="notif-title" id="notif-title">SYS_ALERT</div>
+    </div>
     <div class="notif-body" id="notif-body">Incoming transmission...</div>
+  </div>
+
+  <!-- ── FORCED JAM OVERLAY ─────────────────────────────────────────── -->
+  <!-- Covers the entire screen when admin force-jams the user's channel -->
+  <div id="jam-overlay" class="jam-overlay" aria-live="assertive" aria-atomic="true">
+    <div class="jam-scanlines"></div>
+    <div class="jam-content">
+      <div class="jam-icon">⚠</div>
+      <div class="jam-title">CHANNEL JAMMED</div>
+      <div class="jam-channel" id="jam-channel-label">CH-?</div>
+      <div class="jam-sub">SPECTRUM INTERFERENCE DETECTED<br>AWAITING REALLOCATION…</div>
+      <div class="jam-bars">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
   </div>
 
   <div class="app-container">
@@ -34,7 +53,7 @@
       <div class="header-top">
         <div class="header-brand">
           <span class="icon-wifi" aria-hidden="true">&#x2630;</span>
-          SIGINT_OS
+          COGNIRAD
         </div>
         <div class="header-badge" id="header-status">ENCRYPTED</div>
       </div>
@@ -58,6 +77,21 @@
       
       <!-- Layer 1: Contacts List -->
       <div id="contacts-panel" class="panel">
+        <!-- Search bar -->
+        <div class="contacts-search-bar">
+          <span class="search-icon">&#x1F50D;</span>
+          <input type="text" id="contacts-search" class="contacts-search-input" placeholder="Search contacts..." autocomplete="off" />
+          <button id="search-clear" class="search-clear" aria-label="Clear search">&#x2715;</button>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="all" onclick="setFilter('all')">All</button>
+          <button class="filter-tab" data-filter="same" onclick="setFilter('same')">Same Channel</button>
+          <button class="filter-tab" data-filter="other" onclick="setFilter('other')">Cross Channel</button>
+          <button class="filter-tab" data-filter="online" onclick="setFilter('online')">Online</button>
+        </div>
+
         <div class="contacts-scroll" id="contacts-list">
           <!-- Populated via JS -->
         </div>
@@ -84,7 +118,7 @@
 
         <div class="chat-input-bar">
           <div class="chat-input-wrapper">
-            <input type="text" id="chat-input" class="chat-input" placeholder="ENTER_COMMAND_OR_MESSAGE..." autocomplete="off">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." autocomplete="off">
           </div>
           <button id="chat-send-btn" class="chat-send">&#x27A4;</button>
         </div>

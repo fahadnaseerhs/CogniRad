@@ -8,9 +8,15 @@ Phase 2 additions: idle decay system so that per-student and per-channel
 energy decreases naturally during idle periods, allowing channels to
 recover from CONGESTED/BUSY back to FREE without forced reallocation.
 
+Phase 3 additions: realistic PHY event simulation.  Every incoming
+WebSocket message is treated as a transmission burst.  Message size and
+arrival timing drive a simulated bitrate, which is then used to compute
+channel utilization, interference energy, and SNR degradation.
+
 Public API
 ----------
 compute_message_energy(text, channel_id, ...)  → float
+compute_phy_event(text, channel_id, dt_seconds, n_users) → dict
 update_energy_score(cms, message_energy)        → float   (new total)
 get_energy_score(cms)                           → float   (decay-aware)
 reset_energy_score(cms)                         → None
@@ -48,21 +54,51 @@ _energy_timestamps: dict[str, float] = {}      # CMS → last-update epoch
 # ---------------------------------------------------------------------------
 # Phase 2 — Idle Decay Constants
 # ---------------------------------------------------------------------------
-# These are module-level tunables.  Adjust here to change decay behaviour
-# globally without touching any other file.
 
 # How often (in seconds) one decay "tick" is defined to be.
-# Energy is reduced by DECAY_FACTOR once per tick of elapsed idle time.
-DECAY_INTERVAL_SECONDS: float = 5.0
+# Changed from 5s to 1s so the AI loop fires every second and decay
+# feels continuous on live charts.  All decay factors have been rescaled
+# accordingly (see apply_idle_decay).
+DECAY_INTERVAL_SECONDS: float = 1.0
 
-# Multiplicative factor applied per tick.  0.95 means energy drops to
-# 95 % of its previous value every DECAY_INTERVAL_SECONDS of idle time.
-# Must be in (0, 1).  Lower values = faster cooldown.
-DECAY_FACTOR: float = 0.95
+# Dynamic decay: rate adjusts to total active students in the system.
+# More students = slower decay (busier network stays energized longer).
+# Fewer students = faster decay  (quiet channel clears quickly).
+#
+# These are per-1-second base values (rescaled from original per-5s values).
+#   n= 0 students : decay ≈ 0.979  (fast cooldown)
+#   n=50 students : decay ≈ 0.990  (slow cooldown)
+#
+_DECAY_BASE: float = 0.979   # minimum decay factor (empty/quiet system) — was 0.92
+_DECAY_MAX:  float = 0.990   # maximum decay factor (full 50-student load) — was 0.99
+_DECAY_MAX_STUDENTS: int = 50
 
 # Clamp threshold.  Any energy value below this is snapped to exactly 0.0
 # to prevent endless tiny float residue (e.g. 0.000000012).
 ENERGY_EPSILON: float = 0.01
+
+# Backward-compatible alias so existing tests that reference sp.DECAY_FACTOR
+# still work.  Points to the per-1s base decay factor.
+DECAY_FACTOR: float = _DECAY_BASE   # 0.979 per 1-second tick
+
+
+def get_dynamic_decay_factor(n_total_active: int) -> float:
+    """
+    Return the decay factor for the current system-wide active student count.
+
+    Parameters
+    ----------
+    n_total_active : int
+        Total number of students that currently have a non-zero energy score
+        across all channels.  Pass 0 if no students are active.
+
+    Returns
+    -------
+    float
+        A value in [_DECAY_BASE, _DECAY_MAX].  Higher = slower decay.
+    """
+    ratio = min(max(n_total_active, 0) / _DECAY_MAX_STUDENTS, 1.0)
+    return _DECAY_BASE + (_DECAY_MAX - _DECAY_BASE) * ratio
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +116,7 @@ _EIRP_MAX_5G        = 17.0           # dBm
 # SNR model
 SNR_CLEAN_DB        = 30.0           # pristine channel
 SNR_FLOOR_DB        = 2.0            # minimum useful SNR
-SNR_PER_JOULE_DROP  = 1.8            # each joule of total energy reduces SNR by this
+SNR_PER_JOULE_DROP  = 0.08           # was 1.8 — energy should not tank SNR this fast
 
 # Modulation ladder (min_snr → name, bits_per_symbol)
 MODULATION_LADDER: list[tuple[float, str, int]] = [
@@ -106,7 +142,107 @@ def _band_params(channel_id: str) -> tuple[float, float, float]:
 
 
 # ---------------------------------------------------------------------------
-# 1. compute_message_energy
+# 1. compute_phy_event  (Phase 3 — timing-aware PHY simulation)
+# ---------------------------------------------------------------------------
+
+def compute_phy_event(
+    text: str,
+    channel_id: str,
+    dt_seconds: float,
+    n_users: int,
+) -> dict:
+    """
+    Simulate a realistic PHY transmission event from a WebSocket message.
+
+    This is the Phase 3 core function.  Every incoming DM is treated as a
+    transmission burst.  Message size and arrival timing drive a simulated
+    bitrate, which is then used to compute channel utilization, interference
+    energy, and SNR degradation.
+
+    Algorithm
+    ---------
+    1. bits = len(text) * 8
+    2. dt   = max(dt_seconds, PHY_MIN_DT_SECONDS)   ← clamp to avoid ÷0
+    3. bitrate_bps = bits / dt                       ← simulated burst rate
+    4. utilization = bitrate_bps / capacity_bps      ← fraction of channel used
+    5. msg_energy  = base_energy
+                   + energy_per_bit * bits
+                   + utilization_weight * utilization
+                   + contention_weight * max(n_users - 1, 0)
+    6. Derive SNR from channel total + this burst
+    7. Select modulation from SNR ladder
+
+    Why this gives realistic behaviour
+    -----------------------------------
+    * Fast repeated long messages → high bitrate → high utilization → high
+      energy → SNR drops → modulation degrades → channel congests.
+    * Idle periods → energy decays → SNR recovers → channel frees up.
+    * Same text on 2.4 GHz vs 5 GHz produces different stress because the
+      profiles have different capacity_bps and weight constants.
+    * More concurrent users → higher contention penalty → more energy.
+
+    Parameters
+    ----------
+    text : str
+        The DM text content.
+    channel_id : str
+        e.g. "CH-1".  Used to look up the PHY profile.
+    dt_seconds : float
+        Seconds since this sender's previous message.  Pass a large value
+        (e.g. 60.0) for the first message from a sender.
+    n_users : int
+        Number of concurrent users on the channel (including sender).
+
+    Returns
+    -------
+    dict with keys:
+        bits            int     raw bit count of this message
+        dt_seconds      float   clamped inter-message interval
+        bitrate_bps     float   simulated burst bitrate
+        utilization     float   fraction of channel capacity used (0–1+)
+        msg_energy      float   energy contribution of this message
+        band            str     "2.4 GHz" or "5 GHz"
+        capacity_bps    int     channel capacity used for normalisation
+    """
+    import channels as ch_mod
+
+    freq = ch_mod.CHANNELS[channel_id]["frequency"]
+    profile = ch_mod.get_phy_profile(freq)
+
+    bits = max(len(text), 1) * 8
+    dt   = max(dt_seconds, ch_mod.PHY_MIN_DT_SECONDS)
+
+    bitrate_bps  = bits / dt
+    utilization  = bitrate_bps / profile["capacity_bps"]
+
+    # Contention penalty: (N-1)/sqrt(N)
+    # Grows with users but sub-linearly so it doesn't explode at N=30.
+    # N=2: 0.71  N=5: 1.79  N=10: 2.85  N=30: 5.29  N=50: 6.93
+    n            = max(n_users, 1)
+    contention   = (n - 1) / math.sqrt(n)
+
+    msg_energy = (
+        profile["base_energy"]
+        + profile["energy_per_bit"] * bits
+        + profile["utilization_weight"] * utilization
+        + profile["contention_weight"] * contention
+    )
+
+    band = "2.4 GHz" if freq.startswith("2.4") else "5 GHz"
+
+    return {
+        "bits":         bits,
+        "dt_seconds":   round(dt, 4),
+        "bitrate_bps":  round(bitrate_bps, 2),
+        "utilization":  round(min(utilization, 1.0), 6),
+        "msg_energy":   round(msg_energy, 4),
+        "band":         band,
+        "capacity_bps": profile["capacity_bps"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# 1b. compute_message_energy  (legacy wrapper — kept for backward compat)
 # ---------------------------------------------------------------------------
 
 def compute_message_energy(
@@ -118,28 +254,22 @@ def compute_message_energy(
     """
     Compute the energy contribution of a single DM.
 
-    The energy grows with message length and is scaled by the RF band
-    profile.  Concurrent transmitters inflate the energy footprint because
-    of contention overhead.
+    Phase 3: delegates to compute_phy_event with a default dt of 1.0 s
+    (representing a "normal" inter-message gap) so that callers that do
+    not track timing still get a reasonable energy value.  The full
+    timing-aware path goes through compute_phy_event directly.
 
     Returns
     -------
-    float   Non-negative energy value (arbitrary units, comparable across
-            channels because both bands are normalised to eirp_max).
+    float   Non-negative energy value.
     """
-    epc, base, eirp_max = _band_params(channel_id)
-
-    char_count = max(len(text), 1)
-    bits = char_count * 8
-    tx_scale = max(1, concurrent_transmitters)
-
-    # raw energy = base * per_char * chars * transmitter contention
-    raw = base * epc * char_count * tx_scale
-
-    # Cap at EIRP max (regulatory ceiling)
-    energy = min(raw, eirp_max * tx_scale)
-
-    return round(energy, 4)
+    event = compute_phy_event(
+        text,
+        channel_id,
+        dt_seconds=1.0,
+        n_users=max(concurrent_transmitters, 1),
+    )
+    return event["msg_energy"]
 
 
 # ---------------------------------------------------------------------------
@@ -195,41 +325,22 @@ def set_energy_score(cms: str, value: float) -> None:
 # Phase 2 — Idle Decay Helpers
 # ---------------------------------------------------------------------------
 
-def apply_decay_to_student(cms: str, now: float | None = None) -> float:
+def apply_decay_to_student(cms: str, now: float | None = None, decay_factor: float | None = None) -> float:
     """
     Apply exponential idle decay to a single student's energy and return
     the resulting (post-decay) value.
-
-    Phase 2 core helper.  All energy reads should go through this function
-    (or through get_energy_score which delegates here) so that callers
-    always receive a time-accurate value.
-
-    Algorithm
-    ---------
-    1. Read current energy and the timestamp of the last update.
-    2. Compute elapsed seconds since that timestamp.
-    3. Convert elapsed time into discrete decay ticks:
-           ticks = floor(elapsed / DECAY_INTERVAL_SECONDS)
-    4. Apply multiplicative decay:
-           new_energy = old_energy * (DECAY_FACTOR ** ticks)
-    5. Clamp values below ENERGY_EPSILON to exactly 0.0.
-    6. Persist the decayed value and update the timestamp only when at
-       least one tick has elapsed (idempotent for the same `now`).
-
-    Why discrete ticks instead of continuous decay
-    -----------------------------------------------
-    Discrete ticks make the output deterministic: given the same `now`
-    and the same stored state, the function always returns the same value.
-    Continuous decay would produce different results on every call due to
-    floating-point timing jitter.
 
     Parameters
     ----------
     cms : str
         Student CMS identifier.
     now : float | None
-        Current epoch time.  Defaults to time.time().  Pass an explicit
-        value in tests to make decay deterministic.
+        Current epoch time.  Defaults to time.time().
+    decay_factor : float | None
+        Override the decay factor for this call.  When None, uses
+        get_dynamic_decay_factor() based on current active student count.
+        Pass an explicit value from apply_idle_decay() so that all
+        students in one bulk decay cycle use the same factor.
 
     Returns
     -------
@@ -242,37 +353,27 @@ def apply_decay_to_student(cms: str, now: float | None = None) -> float:
     with _energy_lock:
         current_energy = _energy_scores.get(cms, 0.0)
 
-        # Nothing to decay — return early to avoid unnecessary work.
         if current_energy == 0.0:
             return 0.0
 
         last_ts = _energy_timestamps.get(cms, now)
         elapsed = now - last_ts
-
-        # Compute how many full decay ticks have elapsed.
-        # Using floor ensures we only decay in discrete steps, keeping
-        # the function idempotent for the same `now` value.
-        ticks = int(elapsed / DECAY_INTERVAL_SECONDS)
+        ticks   = int(elapsed / DECAY_INTERVAL_SECONDS)
 
         if ticks <= 0:
-            # Less than one full tick has passed — no decay yet.
             return round(current_energy, 4)
 
-        # Exponential decay: energy * factor^ticks
-        # This is equivalent to applying the factor `ticks` times but
-        # computed in a single operation for efficiency.
-        decayed = current_energy * (DECAY_FACTOR ** ticks)
+        # Resolve decay factor: use provided value or compute dynamically.
+        if decay_factor is None:
+            n_active = len([e for e in _energy_scores.values() if e > 0.0])
+            decay_factor = get_dynamic_decay_factor(n_active)
 
-        # Clamp tiny residue to zero to avoid endless float noise.
+        decayed = current_energy * (decay_factor ** ticks)
+
         if decayed < ENERGY_EPSILON:
             decayed = 0.0
 
-        # Persist the decayed value.
         _energy_scores[cms] = round(decayed, 4)
-
-        # Advance the timestamp by the consumed ticks so that the next
-        # call correctly measures elapsed time from the end of the last
-        # full tick, not from the original timestamp.
         _energy_timestamps[cms] = last_ts + ticks * DECAY_INTERVAL_SECONDS
 
         return round(decayed, 4)
@@ -280,50 +381,76 @@ def apply_decay_to_student(cms: str, now: float | None = None) -> float:
 
 def apply_idle_decay(now: float | None = None) -> dict[str, Any]:
     """
-    Apply exponential idle decay to ALL students who currently have energy.
+    Apply state-dependent exponential idle decay to ALL students.
 
-    Phase 2 bulk decay function.  Called at the start of every AI
-    observation tick in main.py so that the system evolves even when no
-    HTTP/WebSocket requests are in flight.
+    Decay rate depends on the channel state the student is currently on:
 
-    This function delegates per-student work to apply_decay_to_student so
-    that the decay logic lives in exactly one place (single source of
-    truth rule from the Phase 2 spec).
+        State        Base decay   Meaning
+        -------      ----------   -------
+        FREE         0.90         Fast cooldown — quiet channel
+        BUSY         0.95         Moderate — ongoing traffic
+        CONGESTED    0.80         Round-robin active, forced cooldown
+        JAMMED       0.70         Aggressive drain + new msgs blocked
 
-    Parameters
-    ----------
-    now : float | None
-        Current epoch time.  Defaults to time.time().  Pass an explicit
-        value in tests to make results deterministic.
+    Each rate is additionally adjusted upward by 0.005 * ln(N_on_channel)
+    so that larger channels cool down slightly more slowly (more background
+    chatter keeps energy up).
 
-    Returns
-    -------
-    dict with keys:
-        decayed_count   int     number of students whose energy changed
-        zeroed_count    int     number of students clamped to 0.0
-        before_total    float   sum of all energies before decay
-        after_total     float   sum of all energies after decay
+    All students in one bulk cycle use a per-channel pre-computed factor
+    so the rate can't change mid-loop.
     """
     if now is None:
         now = time.time()
 
-    # Snapshot the current CMS list under the lock so we don't iterate
-    # while apply_decay_to_student also acquires the lock.
+    import channels as ch_mod  # lazy to avoid circular import at module level
+
+    # State → base decay factor mapping.
+    # These are per-1-second factors, rescaled from the original per-5s values
+    # using the formula: new = old^(1/5).
+    #   FREE:      0.90^0.2 = 0.979  (was 0.90 per 5s)
+    #   BUSY:      0.95^0.2 = 0.990  (was 0.95 per 5s)
+    #   CONGESTED: 0.80^0.2 = 0.956  (was 0.80 per 5s)
+    #   JAMMED:    0.70^0.2 = 0.931  (was 0.70 per 5s)
+    # Keeping the old values at 1s ticks would drain energy to near-zero
+    # in seconds and prevent channels from ever building up load.
+    _STATE_DECAY: dict[str, float] = {
+        "FREE":      0.979,
+        "BUSY":      0.986,
+        "CONGESTED": 0.992,
+        "JAMMED":    0.995,
+    }
+
+    # Build student → (decay_factor) map per channel
+    student_decay: dict[str, float] = {}
+    for ch_data in ch_mod.CHANNELS.values():
+        state   = ch_data.get("status", "FREE")
+        members = list(ch_data["users"])
+        n       = max(len(members), 1)
+        base    = _STATE_DECAY.get(state, 0.90)
+        # N-adjustment: larger channels cool slightly slower
+        factor  = min(base + 0.005 * math.log(n), 0.999)
+        for cms in members:
+            student_decay[cms] = factor
+
     with _energy_lock:
-        cms_list = list(_energy_scores.keys())
+        cms_list     = list(_energy_scores.keys())
         before_total = round(sum(_energy_scores.values()), 4)
+        n_active     = sum(1 for e in _energy_scores.values() if e > 0.0)
 
     decayed_count = 0
-    zeroed_count = 0
+    zeroed_count  = 0
+    decay_factors_used: set[float] = set()
 
     for cms in cms_list:
-        # Read the pre-decay value without the lock (safe: we only need
-        # an approximate snapshot for the summary).
         pre = _energy_scores.get(cms, 0.0)
         if pre == 0.0:
-            continue  # already zero — skip
+            continue
 
-        post = apply_decay_to_student(cms, now=now)
+        # Per-student state-dependent decay factor
+        factor = student_decay.get(cms, 0.90)  # default FREE if not on channel
+        decay_factors_used.add(factor)
+
+        post = apply_decay_to_student(cms, now=now, decay_factor=factor)
 
         if post != pre:
             decayed_count += 1
@@ -335,9 +462,10 @@ def apply_idle_decay(now: float | None = None) -> dict[str, Any]:
 
     return {
         "decayed_count": decayed_count,
-        "zeroed_count": zeroed_count,
-        "before_total": before_total,
-        "after_total": after_total,
+        "zeroed_count":  zeroed_count,
+        "before_total":  before_total,
+        "after_total":   after_total,
+        "n_active":      n_active,
     }
 
 
@@ -443,12 +571,23 @@ def decay_energy_on_reallocation(cms: str, factor: float = 0.5) -> float:
 
 def derive_snr(channel_energy: float, n_users: int) -> float:
     """
-    Derive channel SNR from total accumulated energy and user count.
+    Derive channel SNR from total energy and user count.
 
-    Higher total energy → lower SNR (more interference).
+    Formula (spec Step 6):
+        SNR = 30 - (N-1)*0.5 - (E / T_jammed) * 15
+
+    Where:
+      (N-1)*0.5      : each extra user costs 0.5 dB (was 2.0, too harsh)
+      (E/T_jammed)*15: at 100% of JAMMED threshold, SNR drops 15 dB max
+      T_jammed       = 35 * sqrt(N)  (same delta coefficient as classifier)
+
+    This anchors SNR degradation to the dynamic JAMMED ceiling rather than
+    raw joules, so SNR never collapses just because N is large.
     """
-    contention_penalty = max(n_users - 1, 0) * 2.0
-    energy_penalty = channel_energy * SNR_PER_JOULE_DROP
+    n        = max(n_users, 1)
+    t_jammed = 35.0 * math.sqrt(n)   # delta coefficient from classifier
+    contention_penalty = max(n - 1, 0) * 0.5
+    energy_penalty     = (channel_energy / max(t_jammed, 1.0)) * 15.0
     snr = SNR_CLEAN_DB - contention_penalty - energy_penalty
     return max(snr, SNR_FLOOR_DB)
 

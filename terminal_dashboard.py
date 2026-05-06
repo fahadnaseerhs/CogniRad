@@ -37,7 +37,7 @@ colorama.init(autoreset=True)
 REFRESH_INTERVAL   = 4          # seconds between full redraws
 BAR_WIDTH          = 28         # character width of progress bars
 MAX_MSG_FEED       = 8          # how many recent messages to show
-ENERGY_SCALE_MAX   = 15.0       # energy value that fills the bar to 100 %
+ENERGY_SCALE_MAX   = 150.0      # energy value that fills the bar to 100 % (matches JAMMED threshold)
 
 # ── shared state (written by process_message, read by dashboard) ────────────
 _message_feed: deque[dict[str, Any]] = deque(maxlen=MAX_MSG_FEED)
@@ -59,19 +59,35 @@ def record_message(
     energy: float,
     status: str,
     delivery: str,
+    *,
+    bitrate_bps: float = 0.0,
+    dt_seconds: float = 0.0,
+    utilization: float = 0.0,
+    band: str = "",
+    modulation: str = "",
 ) -> None:
     """
     Append one delivered/rejected message to the live feed.
     Called from process_message() in main.py after every DM attempt.
+
+    Phase 3 additions: optional PHY telemetry fields (bitrate_bps,
+    dt_seconds, utilization, band, modulation) are stored and rendered
+    in the dashboard feed so operators can see the RF simulation in action.
     """
     _message_feed.appendleft({
-        "time":      dt.datetime.now().strftime("%H:%M:%S"),
-        "sender":    sender,
-        "recipient": recipient,
-        "channel":   channel,
-        "energy":    energy,
-        "status":    status,
-        "delivery":  delivery,
+        "time":        dt.datetime.now().strftime("%H:%M:%S"),
+        "sender":      sender,
+        "recipient":   recipient,
+        "channel":     channel,
+        "energy":      energy,
+        "status":      status,
+        "delivery":    delivery,
+        # Phase 3 PHY telemetry
+        "bitrate_bps": bitrate_bps,
+        "dt_seconds":  dt_seconds,
+        "utilization": utilization,
+        "band":        band,
+        "modulation":  modulation,
     })
 
 
@@ -274,6 +290,21 @@ def _render() -> None:
             dc       = _delivery_colour(msg["delivery"])
             sc       = _status_colour(msg["status"])
             delivery = msg["delivery"].replace("_", " ")
+
+            # Format bitrate for display (kbps or Mbps)
+            bps = msg.get("bitrate_bps", 0.0)
+            if bps >= 1_000_000:
+                rate_str = f"{bps/1_000_000:.1f}Mbps"
+            elif bps >= 1_000:
+                rate_str = f"{bps/1_000:.0f}kbps"
+            else:
+                rate_str = f"{bps:.0f}bps"
+
+            util_pct = msg.get("utilization", 0.0) * 100
+            dt_s     = msg.get("dt_seconds", 0.0)
+            band     = msg.get("band", "")
+            mod      = msg.get("modulation", "")
+
             print(
                 f"  {Fore.LIGHTBLACK_EX}{msg['time']}{Style.RESET_ALL}"
                 f"  {Fore.WHITE + Style.BRIGHT}{msg['sender']:<10}{Style.RESET_ALL}"
@@ -284,6 +315,14 @@ def _render() -> None:
                 f"  {sc}{msg['status']:<10}{Style.RESET_ALL}"
                 f"  {dc}{delivery}{Style.RESET_ALL}"
             )
+            # PHY telemetry sub-line (only if we have data)
+            if bps > 0:
+                print(
+                    f"  {Fore.LIGHTBLACK_EX}"
+                    f"    ↳ {rate_str}  dt={dt_s:.2f}s  util={util_pct:.1f}%"
+                    f"  {band}  {mod}"
+                    f"{Style.RESET_ALL}"
+                )
 
     print(_divider("═"))
     print(

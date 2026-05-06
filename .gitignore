@@ -13,6 +13,12 @@ ENV/
 
 # Database
 cognirad.db
+cognirad.db-shm
+cognirad.db-wal
+
+# Local smoke-test logs
+*_smoke.log
+*_smoke.err.log
 
 # Machine Learning & Large Data
 *.pt

@@ -26,23 +26,70 @@ ClassificationResult is a TypedDict:
 
 from __future__ import annotations
 
+import math
 from typing import Any, TypedDict
 
 import signal_physics as sp
 
 
 # ---------------------------------------------------------------------------
-# Thresholds  (tunable)
+# Dynamic Threshold Engine
 # ---------------------------------------------------------------------------
+# Thresholds scale with the number of active students on the channel.
+# Design goal: works correctly for n = 1 to n = 50 students per channel.
+#
+# Formula:  threshold = coefficient × sqrt(N)
+#
+# Why sqrt(N)?
+#   In real WiFi (CSMA/CA), the MAC layer handles collisions so effective
+#   load grows sub-linearly with users. sqrt(N) is a standard approximation.
+#
+# Coefficients (tuned for realistic chat traffic with current PHY model):
+#   α =  3  → FREE      ceiling
+#   β = 10  → BUSY      ceiling
+#   γ = 20  → CONGESTED ceiling
+#   δ = 35  → JAMMED    ceiling
+#
+# Scaling table:
+#   N= 1:  FREE<  3.0  BUSY< 10.0  CONGESTED< 20.0  JAMMED< 35.0
+#   N= 5:  FREE<  6.7  BUSY< 22.4  CONGESTED< 44.7  JAMMED< 78.3
+#   N=10:  FREE<  9.5  BUSY< 31.6  CONGESTED< 63.2  JAMMED<110.7
+#   N=30:  FREE< 16.4  BUSY< 54.8  CONGESTED<109.5  JAMMED<191.7
+#   N=50:  FREE< 21.2  BUSY< 70.7  CONGESTED<141.4  JAMMED<247.5
 
-# Energy-based thresholds for channel status
-ENERGY_FREE_MAX      = 2.0     # below this → FREE
-ENERGY_BUSY_MAX      = 8.0     # below this → BUSY
-ENERGY_CONGESTED_MAX = 15.0    # below this → CONGESTED, above → JAMMED
+_ALPHA: float = 3.0    # FREE      coefficient
+_BETA:  float = 10.0   # BUSY      coefficient
+_GAMMA: float = 20.0   # CONGESTED coefficient
+_DELTA: float = 35.0   # JAMMED    coefficient  (used in SNR model too)
 
-# SNR-based thresholds (secondary signal)
-SNR_JAMMED_CEIL      = 5.0     # below this SNR → definitely JAMMED
-SNR_CONGESTED_CEIL   = 12.0    # below this → CONGESTED
+
+def dynamic_thresholds(n: int) -> tuple[float, float, float, float]:
+    """
+    Compute (FREE_MAX, BUSY_MAX, CONGESTED_MAX, JAMMED_MAX) for *n* students.
+
+    Formula: threshold = coefficient * sqrt(n)
+
+    Returns a 4-tuple in Joules: (free_max, busy_max, congested_max, jammed_max).
+
+    Parameters
+    ----------
+    n : int
+        Number of students currently on the channel (0 treated as 1).
+    """
+    scale = math.sqrt(max(n, 1))
+    return (
+        round(_ALPHA * scale, 4),
+        round(_BETA  * scale, 4),
+        round(_GAMMA * scale, 4),
+        round(_DELTA * scale, 4),
+    )
+
+
+# ---------------------------------------------------------------------------
+# SNR thresholds  (physics-based, NOT load-based — stay static)
+# ---------------------------------------------------------------------------
+SNR_JAMMED_CEIL    = 5.0     # below this SNR → definitely JAMMED
+SNR_CONGESTED_CEIL = 10.0    # below this SNR → CONGESTED
 
 # Confidence calculation weights
 W_ENERGY = 0.60
@@ -72,37 +119,46 @@ class ClassificationResult(TypedDict):
 def _classify_snapshot(snapshot: dict[str, Any], admin_jammed: bool = False) -> ClassificationResult:
     """
     Internal: produce a classification from an energy snapshot dict.
+
+    All 4 thresholds (FREE/BUSY/CONGESTED/JAMMED) are computed dynamically
+    from member_count so the system self-calibrates for 1–50 students.
+    SNR is normalised against the dynamic JAMMED ceiling, not raw joules.
     """
     total   = snapshot["total_energy"]
     snr     = snapshot["snr_db"]
     mod_idx = snapshot["modulation_index"]
-    eirp    = 20.0  # normalisation ceiling
+    n       = snapshot["member_count"]
 
-    # ── Energy ratio ────────────────────────────────────────────
-    energy_ratio = min(total / max(ENERGY_CONGESTED_MAX, 1.0), 1.0)
+    # ── Dynamic thresholds (all 4 bands scale with sqrt(N)) ──────
+    free_max, busy_max, congested_max, jammed_max = dynamic_thresholds(n)
 
-    # ── SNR penalty ─────────────────────────────────────────────
+    # ── Energy ratio (normalised to JAMMED ceiling for confidence) 
+    energy_ratio = min(total / max(jammed_max, 1.0), 1.0)
+
+    # ── SNR penalty ──────────────────────────────────────────────
     snr_penalty = max((15.0 - snr) / 20.0, 0.0)
 
-    # ── Modulation penalty ──────────────────────────────────────
+    # ── Modulation penalty ───────────────────────────────────────
     mod_penalty = max((4.0 - mod_idx) / 4.0, 0.0)
 
-    # ── Composite score ─────────────────────────────────────────
+    # ── Composite confidence score ───────────────────────────────
     score = min(
         W_ENERGY * energy_ratio + W_SNR * snr_penalty + W_MOD * mod_penalty,
         1.0,
     )
 
-    # ── Status determination ────────────────────────────────────
+    # ── Status determination ─────────────────────────────────────
     if admin_jammed:
         status = "JAMMED"
-        score = max(score, 0.85)
-    elif total > ENERGY_CONGESTED_MAX or snr < SNR_JAMMED_CEIL:
+        score  = max(score, 0.85)
+    elif total > jammed_max or snr < SNR_JAMMED_CEIL:
         status = "JAMMED"
-    elif total > ENERGY_BUSY_MAX or snr < SNR_CONGESTED_CEIL:
+    elif total > congested_max or snr < SNR_CONGESTED_CEIL:
         status = "CONGESTED"
-    elif total > ENERGY_FREE_MAX:
+    elif total > busy_max:
         status = "BUSY"
+    elif total > free_max:
+        status = "BUSY"   # same label — free_max is soft lower bound
     else:
         status = "FREE"
 
@@ -113,7 +169,7 @@ def _classify_snapshot(snapshot: dict[str, Any], admin_jammed: bool = False) -> 
         snr_db=snapshot["snr_db"],
         modulation=snapshot["modulation"],
         modulation_index=snapshot["modulation_index"],
-        member_count=snapshot["member_count"],
+        member_count=n,
         per_student=snapshot["per_student"],
     )
 

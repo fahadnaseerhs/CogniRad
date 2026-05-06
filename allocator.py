@@ -217,7 +217,8 @@ async def reallocate_users(source_key: str, now: float | None = None) -> list[di
        d. Reclassify source — stop if healthy.
     5. Return list of moves made.
 
-    Admin-forced JAMMED channels evacuate ALL users (pointer resets).
+    Admin-forced JAMMED channels evacuate ALL users. Naturally JAMMED
+    channels still use minimum-move recovery.
 
     Snapshot consistency fix: a single `now` is captured at the top and
     threaded through all energy reads, source ranking, and destination
@@ -235,7 +236,7 @@ async def reallocate_users(source_key: str, now: float | None = None) -> list[di
     if now is None:
         now = time.time()
 
-    admin_jammed = source_data["status"] == "JAMMED"
+    admin_jammed = bool(source_data.get("admin_forced_jammed", False))
     source_db_id = _channel_key_to_db_id(source_key)
 
     # Build energy-sorted member list.

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CogniRad — Live Spectrum Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:      #070d07;
+      --green:   #00ff41;
+      --amber:   #ffbf00;
+      --red:     #ff3333;
+      --magenta: #ff44ff;
+      --muted:   #3a4a3a;
+      --border:  rgba(0,255,65,0.15);
+      --font:    'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--green);
+      font-family: var(--font);
+      font-size: 12px;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+
+    .brand { font-size: 16px; font-weight: bold; letter-spacing: 0.15em; }
+    .brand span { color: var(--amber); }
+
+    #conn-status {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 3px 8px;
+      border: 1px solid currentColor;
+    }
+    #conn-status.connected    { color: var(--green); }
+    #conn-status.disconnected { color: var(--red); }
+
+    /* ── Channel status strip ── */
+    #status-strip {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ch-badge {
+      flex: 1;
+      min-width: 120px;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .ch-badge .ch-name  { font-size: 11px; font-weight: bold; letter-spacing: 0.1em; }
+    .ch-badge .ch-freq  { font-size: 9px;  color: var(--muted); }
+    .ch-badge .ch-stat  { font-size: 10px; font-weight: bold; }
+    .ch-badge .ch-meta  { font-size: 9px;  color: var(--muted); }
+
+    .ch-badge.FREE      { border-color: var(--green);   }
+    .ch-badge.BUSY      { border-color: var(--amber);   }
+    .ch-badge.CONGESTED { border-color: var(--red);     }
+    .ch-badge.JAMMED    { border-color: var(--magenta); }
+
+    .ch-badge.FREE      .ch-stat { color: var(--green);   }
+    .ch-badge.BUSY      .ch-stat { color: var(--amber);   }
+    .ch-badge.CONGESTED .ch-stat { color: var(--red);     }
+    .ch-badge.JAMMED    .ch-stat { color: var(--magenta); }
+
+    /* ── Chart grid ── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+
+    .chart-card {
+      border: 1px solid var(--border);
+      padding: 12px;
+      background: rgba(0,255,65,0.02);
+    }
+
+    .chart-card h3 {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .chart-card canvas { width: 100% !important; }
+
+    /* ── Event log ── */
+    #event-log {
+      border: 1px solid var(--border);
+      padding: 10px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    #event-log h3 {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .event-row {
+      font-size: 10px;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(0,255,65,0.05);
+      display: flex;
+      gap: 10px;
+    }
+
+    .event-row .ev-time { color: var(--muted); flex-shrink: 0; }
+    .event-row .ev-body { color: var(--amber); }
+
+    footer {
+      margin-top: 12px;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">COGNI<span>RAD</span> — LIVE SPECTRUM</div>
+  <div id="conn-status" class="disconnected">CONNECTING…</div>
+</header>
+
+<!-- Channel status badges -->
+<div id="status-strip">
+  <div class="ch-badge FREE" id="badge-CH-1">
+    <div class="ch-name">CH-1</div>
+    <div class="ch-freq">2.412 GHz</div>
+    <div class="ch-stat">FREE</div>
+    <div class="ch-meta">0 users · 0.00 J · 30.0 dB · 64-QAM</div>
+  </div>
+  <div class="ch-badge FREE" id="badge-CH-2">
+    <div class="ch-name">CH-2</div>
+    <div class="ch-freq">2.437 GHz</div>
+    <div class="ch-stat">FREE</div>
+    <div class="ch-meta">0 users · 0.00 J · 30.0 dB · 64-QAM</div>
+  </div>
+  <div class="ch-badge FREE" id="badge-CH-3">
+    <div class="ch-name">CH-3</div>
+    <div class="ch-freq">2.462 GHz</div>
+    <div class="ch-stat">FREE</div>
+    <div class="ch-meta">0 users · 0.00 J · 30.0 dB · 64-QAM</div>
+  </div>
+  <div class="ch-badge FREE" id="badge-CH-4">
+    <div class="ch-name">CH-4</div>
+    <div class="ch-freq">5.180 GHz</div>
+    <div class="ch-stat">FREE</div>
+    <div class="ch-meta">0 users · 0.00 J · 30.0 dB · 64-QAM</div>
+  </div>
+  <div class="ch-badge FREE" id="badge-CH-5">
+    <div class="ch-name">CH-5</div>
+    <div class="ch-freq">5.240 GHz</div>
+    <div class="ch-stat">FREE</div>
+    <div class="ch-meta">0 users · 0.00 J · 30.0 dB · 64-QAM</div>
+  </div>
+</div>
+
+<!-- 4 live charts -->
+<div class="chart-grid">
+  <div class="chart-card">
+    <h3>Chart 1 — Channel Energy (J)</h3>
+    <canvas id="chart-energy" height="200"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Chart 2 — SNR per Channel (dB)</h3>
+    <canvas id="chart-snr" height="200"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Chart 3 — Modulation (bits/symbol)</h3>
+    <canvas id="chart-mod" height="200"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Chart 4 — Energy Slope (J/s)</h3>
+    <canvas id="chart-slope" height="200"></canvas>
+  </div>
+</div>
+
+<!-- Reallocation event log -->
+<div id="event-log">
+  <h3>Reallocation Events</h3>
+  <div id="event-rows"><div class="event-row"><span class="ev-time">--:--:--</span><span class="ev-body">Waiting for events…</span></div></div>
+</div>
+
+<footer>
+  CogniRad Spectrum Dashboard · 1-second live feed · <span id="tick-counter">0</span> ticks received
+</footer>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────
+const WS_URL    = `${location.origin.replace(/^http/, 'ws')}/ws/spectrum`;
+const CHANNELS  = ['CH-1', 'CH-2', 'CH-3', 'CH-4', 'CH-5'];
+const MAX_POINTS = 60;   // 60 seconds of history shown on charts
+
+// Threshold bands for energy chart
+const THRESHOLDS = { FREE: 20, BUSY: 80, CONGESTED: 150 };
+
+// Per-channel colours
+const CH_COLORS = {
+  'CH-1': '#00ff41',
+  'CH-2': '#ffbf00',
+  'CH-3': '#00cfff',
+  'CH-4': '#ff6644',
+  'CH-5': '#cc44ff',
+};
+
+// ── Chart data stores ─────────────────────────────────────────────────────
+const labels = [];   // shared time labels (HH:MM:SS)
+const data   = {};   // ch → { energy, snr, mod, slope }
+CHANNELS.forEach(ch => {
+  data[ch] = { energy: [], snr: [], mod: [], slope: [] };
+});
+
+let tickCount = 0;
+
+// ── Chart factory ─────────────────────────────────────────────────────────
+function makeChart(canvasId, label, datasets, yMin, yMax, thresholdLines) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+
+  const annotations = {};
+  if (thresholdLines) {
+    thresholdLines.forEach((t, i) => {
+      annotations[`line${i}`] = {
+        type: 'line',
+        yMin: t.value, yMax: t.value,
+        borderColor: t.color,
+        borderWidth: 1,
+        borderDash: [4, 4],
+        label: { content: t.label, display: true, color: t.color, font: { size: 9 } },
+      };
+    });
+  }
+
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      animation: false,
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: '#3a4a3a', font: { family: 'Courier New', size: 10 }, boxWidth: 12 }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(7,13,7,0.95)',
+          borderColor: '#00ff41',
+          borderWidth: 1,
+          titleColor: '#00ff41',
+          bodyColor: '#aaaaaa',
+          titleFont: { family: 'Courier New', size: 10 },
+          bodyFont:  { family: 'Courier New', size: 10 },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: '#3a4a3a', font: { size: 9 }, maxTicksLimit: 10 },
+          grid:  { color: 'rgba(0,255,65,0.05)' },
+        },
+        y: {
+          min: yMin, max: yMax,
+          ticks: { color: '#3a4a3a', font: { size: 9 } },
+          grid:  { color: 'rgba(0,255,65,0.05)' },
+        },
+      },
+    },
+  });
+}
+
+function makeDataset(ch, key) {
+  return {
+    label: ch,
+    data: data[ch][key],
+    borderColor: CH_COLORS[ch],
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    pointRadius: 0,
+    tension: 0.3,
+  };
+}
+
+// ── Build charts ──────────────────────────────────────────────────────────
+const energyChart = makeChart(
+  'chart-energy',
+  'Energy (J)',
+  CHANNELS.map(ch => makeDataset(ch, 'energy')),
+  0, 160,
+  [
+    { value: THRESHOLDS.FREE,      color: '#00ff41', label: 'FREE 20J'  },
+    { value: THRESHOLDS.BUSY,      color: '#ffbf00', label: 'BUSY 80J'  },
+    { value: THRESHOLDS.CONGESTED, color: '#ff3333', label: 'CONG 150J' },
+  ]
+);
+
+const snrChart = makeChart(
+  'chart-snr',
+  'SNR (dB)',
+  CHANNELS.map(ch => makeDataset(ch, 'snr')),
+  0, 32,
+  [
+    { value: 25, color: '#00ff41', label: '64-QAM 25dB' },
+    { value: 15, color: '#ffbf00', label: '16-QAM 15dB' },
+    { value:  8, color: '#ff3333', label: 'QPSK 8dB'    },
+  ]
+);
+
+const modChart = makeChart(
+  'chart-mod',
+  'Modulation (bits/sym)',
+  CHANNELS.map(ch => ({
+    ...makeDataset(ch, 'mod'),
+    stepped: true,
+  })),
+  0, 7,
+  [
+    { value: 6, color: '#00ff41', label: '64-QAM' },
+    { value: 4, color: '#ffbf00', label: '16-QAM' },
+    { value: 2, color: '#ff6644', label: 'QPSK'   },
+    { value: 1, color: '#ff3333', label: 'BPSK'   },
+  ]
+);
+
+const slopeChart = makeChart(
+  'chart-slope',
+  'Energy Slope (J/s)',
+  CHANNELS.map(ch => makeDataset(ch, 'slope')),
+  -5, 5,
+  [{ value: 0, color: '#3a4a3a', label: '0 J/s' }]
+);
+
+const allCharts = [energyChart, snrChart, modChart, slopeChart];
+
+// ── Reallocation event markers on energy chart ────────────────────────────
+// We store pending annotations and apply them when the chart updates.
+const pendingAnnotations = [];
+
+function addEventMarker(timestamp, label) {
+  // Find the closest label index
+  const timeStr = new Date(timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const idx = labels.indexOf(timeStr);
+  if (idx < 0) return;
+  // Draw a vertical line annotation on the energy chart
+  const key = `evt_${Date.now()}`;
+  energyChart.options.plugins.annotation = energyChart.options.plugins.annotation || { annotations: {} };
+  energyChart.options.plugins.annotation.annotations[key] = {
+    type: 'line',
+    xMin: idx, xMax: idx,
+    borderColor: '#ff44ff',
+    borderWidth: 1,
+    borderDash: [3, 3],
+    label: { content: label, display: true, color: '#ff44ff', font: { size: 8 }, position: 'start' },
+  };
+}
+
+// ── Data push ─────────────────────────────────────────────────────────────
+function pushTick(ts, channelData, events) {
+  const timeStr = new Date(ts * 1000).toLocaleTimeString([], {
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+
+  labels.push(timeStr);
+  if (labels.length > MAX_POINTS) labels.shift();
+
+  CHANNELS.forEach(ch => {
+    const d = channelData[ch] || {};
+    ['energy', 'snr', 'mod', 'slope'].forEach(key => {
+      const val = key === 'snr'   ? d.snr_db
+                : key === 'mod'   ? d.modulation_index
+                : key === 'slope' ? d.slope
+                :                   d.energy;
+      data[ch][key].push(val ?? 0);
+      if (data[ch][key].length > MAX_POINTS) data[ch][key].shift();
+    });
+
+    // Update status badge
+    updateBadge(ch, d);
+  });
+
+  // Add event markers
+  events.forEach(ev => {
+    if (ev.type === 'REALLOCATION') {
+      addEventMarker(ev.timestamp, `${ev.user}→${ev.to}`);
+      logEvent(ev);
+    }
+  });
+
+  allCharts.forEach(c => c.update('none'));
+  tickCount++;
+  document.getElementById('tick-counter').textContent = tickCount;
+}
+
+function loadHistory(historyData) {
+  // Pre-fill charts with the last 20 points of history
+  const hist = historyData.channels || {};
+  CHANNELS.forEach(ch => {
+    const pts = hist[ch] || [];
+    pts.forEach((e, i) => {
+      const fakeTs = Date.now() / 1000 - (pts.length - i);
+      const timeStr = new Date(fakeTs * 1000).toLocaleTimeString([], {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+      if (!labels.includes(timeStr)) labels.push(timeStr);
+      data[ch].energy.push(e);
+      data[ch].snr.push(null);
+      data[ch].mod.push(null);
+      data[ch].slope.push(null);
+    });
+  });
+  // Log recent events
+  (historyData.recent_events || []).slice(-10).forEach(ev => logEvent(ev));
+  allCharts.forEach(c => c.update('none'));
+}
+
+// ── Badge update ──────────────────────────────────────────────────────────
+function updateBadge(ch, d) {
+  const el = document.getElementById(`badge-${ch}`);
+  if (!el) return;
+  const status = d.status || 'FREE';
+  el.className = `ch-badge ${status}`;
+  el.querySelector('.ch-stat').textContent = status;
+  el.querySelector('.ch-meta').textContent =
+    `${d.member_count ?? 0} users · ${(d.energy ?? 0).toFixed(2)} J · ${(d.snr_db ?? 30).toFixed(1)} dB · ${d.modulation ?? '64-QAM'}`;
+}
+
+// ── Event log ─────────────────────────────────────────────────────────────
+function logEvent(ev) {
+  const rows = document.getElementById('event-rows');
+  const timeStr = new Date((ev.timestamp || Date.now() / 1000) * 1000)
+    .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const row = document.createElement('div');
+  row.className = 'event-row';
+  row.innerHTML = `<span class="ev-time">${timeStr}</span><span class="ev-body">⚡ ${ev.user} moved ${ev.from} → ${ev.to}</span>`;
+  rows.insertBefore(row, rows.firstChild);
+  // Keep max 30 rows
+  while (rows.children.length > 30) rows.removeChild(rows.lastChild);
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────
+let ws;
+const statusEl = document.getElementById('conn-status');
+
+function connect() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    statusEl.textContent = 'LIVE';
+    statusEl.className = 'connected';
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'SPECTRUM_HISTORY') {
+      loadHistory(msg);
+    } else if (msg.type === 'SPECTRUM_TICK') {
+      pushTick(msg.timestamp, msg.channels, msg.events || []);
+    }
+  };
+
+  ws.onclose = () => {
+    statusEl.textContent = 'RECONNECTING…';
+    statusEl.className = 'disconnected';
+    setTimeout(connect, 2000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+connect();
+</script>
+</body>
+</html>

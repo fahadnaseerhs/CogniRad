@@ -82,10 +82,78 @@ MAX_LATENCY_MS = 2500
 JAM_WINDOW_LIMIT = 4.0
 JAM_WINDOW_DECAY = 0.85
 
+# ---------------------------------------------------------------------------
+# Phase 3 — Realistic PHY channel profiles
+# ---------------------------------------------------------------------------
+# Each profile captures the key RF parameters that differ between the
+# 2.4 GHz and 5 GHz bands.  These values are used by signal_physics.py
+# to compute per-message PHY events (bitrate, utilization, energy).
+#
+# Fields
+# ------
+# capacity_bps          int     Theoretical peak throughput (bits/s).
+#                               2.4 GHz 802.11n: ~150 Mbps (1 spatial stream)
+#                               5 GHz 802.11ac:  ~433 Mbps (1 spatial stream)
+# clean_snr_db          float   SNR on an idle, uncontested channel (dB).
+# noise_floor_dbm       float   Thermal + ambient noise floor (dBm).
+#                               2.4 GHz is noisier (shared with BT, microwaves).
+#                               5 GHz is cleaner but shorter range.
+# base_energy           float   Minimum energy cost per transmission (J).
+# energy_per_bit        float   Marginal energy cost per bit (J/bit).
+#                               Scales the raw bitrate into energy units.
+# utilization_weight    float   How much channel utilization (bitrate/capacity)
+#                               amplifies the energy contribution.
+# contention_weight     float   How much each additional concurrent user
+#                               inflates the energy footprint.
+
+PHY_PROFILES: dict[str, dict] = {
+    "2.4 GHz": {
+        "capacity_bps":       150_000_000,   # 150 Mbps (802.11n)
+        "clean_snr_db":       30.0,
+        "noise_floor_dbm":    -90.0,
+        "base_energy":        0.08,
+        "energy_per_bit":     1.5e-5,
+        "utilization_weight": 0.5,
+        "contention_weight":  0.10,          # spec: 0.10 × (N-1)/sqrt(N)
+    },
+    "5 GHz": {
+        "capacity_bps":       433_000_000,   # 433 Mbps (802.11ac)
+        "clean_snr_db":       30.0,
+        "noise_floor_dbm":    -95.0,
+        "base_energy":        0.06,
+        "energy_per_bit":     1.2e-5,
+        "utilization_weight": 0.4,
+        "contention_weight":  0.08,          # spec: 0.08 × (N-1)/sqrt(N)
+    },
+}
+
+# Minimum inter-message interval (seconds) used to clamp dt so a very
+# fast burst does not produce an infinite simulated bitrate.
+PHY_MIN_DT_SECONDS: float = 0.05   # 50 ms floor
+
+
+def get_phy_profile(frequency: str) -> dict:
+    """
+    Return the PHY profile dict for a channel frequency string.
+
+    Parameters
+    ----------
+    frequency : str
+        e.g. "2.412 GHz" or "5.180 GHz"
+
+    Returns
+    -------
+    dict  — one of the PHY_PROFILES entries
+    """
+    if frequency.startswith("2.4"):
+        return PHY_PROFILES["2.4 GHz"]
+    return PHY_PROFILES["5 GHz"]
+
 
 def _band_profile(frequency: str) -> dict[str, float | str]:
     """
     Return the regulatory and baseline PHY profile for a channel frequency.
+    (Legacy helper kept for backward compatibility with build_signal_features.)
     """
     if frequency.startswith("2.4"):
         return {
@@ -118,6 +186,7 @@ CHANNELS: dict[str, dict] = {
         "rolling_jammed_score": 0.0,
         "last_signal": {},
         "transmit_frozen": False,
+        "admin_forced_jammed": False,
     },
     "CH-2": {
         "frequency": "2.437 GHz",
@@ -129,6 +198,7 @@ CHANNELS: dict[str, dict] = {
         "rolling_jammed_score": 0.0,
         "last_signal": {},
         "transmit_frozen": False,
+        "admin_forced_jammed": False,
     },
     "CH-3": {
         "frequency": "2.462 GHz",
@@ -140,6 +210,7 @@ CHANNELS: dict[str, dict] = {
         "rolling_jammed_score": 0.0,
         "last_signal": {},
         "transmit_frozen": False,
+        "admin_forced_jammed": False,
     },
     "CH-4": {
         "frequency": "5.180 GHz",
@@ -151,6 +222,7 @@ CHANNELS: dict[str, dict] = {
         "rolling_jammed_score": 0.0,
         "last_signal": {},
         "transmit_frozen": False,
+        "admin_forced_jammed": False,
     },
     "CH-5": {
         "frequency": "5.240 GHz",
@@ -162,6 +234,7 @@ CHANNELS: dict[str, dict] = {
         "rolling_jammed_score": 0.0,
         "last_signal": {},
         "transmit_frozen": False,
+        "admin_forced_jammed": False,
     },
 }
 

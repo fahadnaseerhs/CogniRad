@@ -1,184 +1,473 @@
 # CogniRad
 
-**CogniRad** is an advanced cognitive-radio simulation and secure messaging platform. The system operates on a direct-messaging (DM) model, constrained by radio-frequency physics and channel contention algorithms. The backend uses Python and FastAPI to run real-time WebSocket communication, while an autonomous AI loop dynamically reallocates users across frequency bands based on aggregate energy thresholds.
+CogniRad is a cognitive-radio simulation platform with real-time direct messaging, channel health classification, and automatic user reallocation across Wi-Fi bands.
 
-## Features
-- **Cognitive Radio Physics Model:** A realistic energy accumulation system where direct messages add energy to shared frequency bands.
-- **AI Channel Orchestration:** A background decision engine that monitors band health and seamlessly reallocates nodes to prevent frequency jamming.
-- **Secure DM Routing:** Dual-dictionary WebSocket architecture to guarantee fast, private point-to-point delivery.
-- **Immersive Frontend UI:** A fully optimized, mobile-responsive "terminal" interface featuring a WebGL 3D wave background, seamless single-page slide transitions, and native-feeling interactions.
-- **Spectrum Classification (ML):** A dedicated PyTorch pipeline for training and evaluating dataset models for signal classification.
+It combines:
+- a FastAPI backend,
+- WebSocket-based live messaging,
+- RF-inspired energy and SNR modeling,
+- an AI loop that prevents channel collapse,
+- student and admin web interfaces,
+- and an async SQLite persistence layer.
+
+---
+
+## What This Project Is
+
+CogniRad models communication in shared spectrum where each message contributes energy load on a channel.  
+As load rises, channel quality degrades from `FREE` to `BUSY`, then `CONGESTED`, and finally `JAMMED`.
+
+When overload is detected (or predicted), the allocator moves users to safer channels using a fair, minimum-move strategy.
+
+This is both:
+- **an educational system** (network/spectrum behavior simulation), and
+- **a full-stack application** (backend + realtime frontend + dashboards + tests).
+
+---
+
+## Core Features
+
+- Authenticated student login/session handling
+- Direct messaging (DM) via WebSocket and REST fallback
+- 5-channel spectrum model (`CH-1` to `CH-5`)
+- Per-student cumulative energy scoring
+- Signal-derived channel classification (energy, SNR, modulation)
+- Automatic and manual channel reallocation
+- Admin force-jam / unjam controls
+- Live spectrum telemetry stream for admin dashboard
+- Terminal dashboard + browser dashboard
+- Async SQLAlchemy + SQLite persistence
+
+---
+
+## Channel Model
+
+Defined in `channels.py`.
+
+| Channel | Frequency |
+|---|---|
+| CH-1 | 2.412 GHz |
+| CH-2 | 2.437 GHz |
+| CH-3 | 2.462 GHz |
+| CH-4 | 5.180 GHz |
+| CH-5 | 5.240 GHz |
+
+### Channel states
+- `FREE`: low load
+- `BUSY`: active but healthy
+- `CONGESTED`: degraded quality; AI may reallocate
+- `JAMMED`: severe/forced interference; communication constrained and users moved
+
+---
+
+## How It Works (End-to-End)
+
+1. Student logs in at `static/index.html` (`/auth/login`).
+2. Student is assigned a channel (`/channel/join`).
+3. App opens authenticated WebSocket (`/ws/{token}`).
+4. Each outbound message goes through `process_message()` in `main.py`:
+   - PHY event is computed from text and timing,
+   - sender energy is updated,
+   - source channel is reclassified,
+   - if overloaded, allocator attempts recovery,
+   - message is delivered/rejected with delivery metadata.
+5. Background AI loop runs every second:
+   - applies idle decay,
+   - classifies all channels,
+   - triggers reactive or predictive reallocations,
+   - broadcasts `SPECTRUM_TICK` to admin subscribers (`/ws/spectrum`).
+
+---
+
+## Architecture
+
+- `main.py`: FastAPI app, endpoints, websocket hub, AI loop
+- `auth.py`: token/session auth
+- `database.py`: async ORM + persistence
+- `channels.py`: channel registry + membership helpers
+- `signal_physics.py`: energy, SNR, modulation, decay
+- `classifier.py`: health classification
+- `allocator.py`: fair destination-aware reallocation
+- `terminal_dashboard.py`: live terminal status output
+- `static/`: student/admin frontend
 
 ---
 
 ## Project Structure
 
-A professional separation of concerns has been applied to the project repository:
-
 ```text
 CogniRad/
-├── main.py                # FastAPI entry point, API routes, WS Manager
-├── database.py            # SQLAlchemy async database configuration
-├── auth.py                # Session validation and login logic
-├── channels.py            # In-memory channel states and band membership
-├── allocator.py           # The Decision Engine for user reallocation
-├── classifier.py          # AI health projection and classification logic
-├── signal_physics.py      # Core physics math for computing signal energy
-│
-├── static/                # Frontend Web Application
-│   ├── app.html           # Main DM and contacts interface
-│   ├── index.html         # Secure access gateway login
-│   ├── css/               # Modular CSS (app.css, style.css)
-│   └── js/                # Client logic (app.js, auth.js)
-│
-├── ml/                    # Machine Learning and Data Science pipeline
-│   ├── cognirad_training.py # Core PyTorch training loop
-│   ├── models/            # Saved weights (.pt files)
-│   ├── dataset/           # Training data
-│   ├── layer_1/           # Scripts for dataset mapping
-│   └── plots/             # Generated analytics and visual plots
-│
-├── planning/              # Project specs and build sequence docs
-├── documentation/         # General project reference guides
-├── tests/                 # Integration test suite (test_all.py)
-└── requirements.txt       # Python dependencies
+├── main.py
+├── auth.py
+├── allocator.py
+├── channels.py
+├── classifier.py
+├── database.py
+├── signal_physics.py
+├── terminal_dashboard.py
+├── students.json
+├── simulate_load.py
+├── test_all.py
+├── requirements.txt
+├── static/
+│   ├── index.html
+│   ├── app.html
+│   ├── admin.html
+│   ├── spectrum.html
+│   ├── css/
+│   └── js/
+└── ml/
 ```
-
-*Note on Dataset: The `ml/dataset/` directory is intentionally excluded from version control due to its massive size. This project trains on the [DeepSig RadioML Dataset](https://www.deepsig.ai/datasets). To replicate the ML training locally, you must download the dataset directly from DeepSig and place it in the `ml/dataset/` directory.*
 
 ---
 
-## Setup & Installation
+## Setup
 
-### Prerequisites
-- **Python 3.10+**
-- **pip** and **virtualenv** (recommended)
+### 1) Create virtual environment
 
-### 1. Environment Setup
-Create and activate a virtual environment:
 ```bash
 python -m venv venv
+```
 
-# Windows
+Windows:
+
+```bash
 venv\Scripts\activate
-# macOS/Linux
+```
+
+macOS/Linux:
+
+```bash
 source venv/bin/activate
 ```
 
-Install the dependencies:
+### 2) Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Database Initialization
-Ensure `students.json` is located in the root directory and populated with valid CMS IDs and names. The system will automatically build `cognirad.db` upon the first run using SQLAlchemy.
+### 3) Ensure seed file exists
 
-### 3. Running the Server
-To start the FastAPI server with live reloading:
-```bash
-uvicorn main:app --reload
+`students.json` must be present at project root and contain CMS-to-name mapping, for example:
+
+```json
+{
+  "458214": "Daneen Anwar",
+  "481862": "Noor ul Harem"
+}
 ```
-Alternatively, you can just run:
+
+---
+
+## Running The System
+
+### Standard mode
+
 ```bash
 python main.py
 ```
 
-### 4. Accessing the Client
-Once the server is running, navigate your browser to:
-`http://localhost:8000/static/index.html`
+### Simulation browser mode (opens many tabs)
 
----
-
-## Testing
-To run the automated test suite and verify the physics, classification, and allocation logic:
 ```bash
-pytest test_all.py -v --asyncio-mode=auto
+python main.py --simulate
+```
+
+### Optional load bot script
+
+```bash
+python simulate_load.py
 ```
 
 ---
 
-## Maintenance Notes
-- **Static Assets:** Do not change file structures within the `static` directory without updating the relative paths in `app.html` and `index.html`.
-- **Background Tasks:** The AI allocator loop runs every 5 seconds asynchronously within the FastAPI lifecycle context. Adjust the intervals in `main.py` if testing specific energy decay behaviors.
+## URLs
+
+- Student login: `http://127.0.0.1:8080/static/index.html`
+- Student app: `http://127.0.0.1:8080/static/app.html`
+- Admin dashboard: `http://127.0.0.1:8080/admin`
+- Spectrum viewer: `http://127.0.0.1:8080/static/spectrum.html`
+- OpenAPI docs: `http://127.0.0.1:8080/docs`
 
 ---
 
-## Changelog
+## Configuration
 
-### April 29, 2025
+Environment variables:
 
-#### Phase 2 — Idle Energy Decay (`signal_physics.py`, `main.py`)
+- `COGNIRAD_ADMIN_PASSWORD` (default: `admin`)
+- `COGNIRAD_HOST` (default: `127.0.0.1`)
+- `COGNIRAD_PORT` (default: `8080`)
 
-Energy previously only ever increased. Long-lived sessions became permanently stressed and channels could never recover without a forced reallocation. Phase 2 adds a time-based decay system so inactive users and channels cool down naturally.
+---
 
-- Added tunable constants: `DECAY_INTERVAL_SECONDS = 5`, `DECAY_FACTOR = 0.95`, `ENERGY_EPSILON = 0.01`
-- `apply_decay_to_student(cms, now)` — exponential decay in discrete ticks (`energy × 0.95^ticks`), idempotent for the same `now`, clamps sub-epsilon values to exactly `0.0`
-- `apply_idle_decay(now)` — bulk decay for all active students; called at the start of every AI observation tick
-- `get_energy_score(cms, now)` — now decay-aware; applies lazy decay before returning so all callers always get a time-accurate value
-- `get_channel_energy_snapshot(channel_id, now)` — accepts a shared `now` so all member decays within one snapshot use the same instant (no tick-boundary splits mid-snapshot)
-- `project_channel_energy(channel_id, additional_energy, now)` — same shared-`now` fix for projections used by the allocator
-- AI loop order changed to: **decay → classify → reallocate** (only if still overloaded after decay)
-- `process_message()` decays the sender before adding new message energy
+## API Reference
 
-#### Bug Fix — Delivery Policy (`main.py`)
+### Auth
 
-`process_message()` set `accepted = True` unconditionally after calling `reallocate_users()`, even when the allocator found no safe destination and stabilisation never happened.
+- `POST /auth/login`
+  - body: `{ "cms_id": "..."} ` or `{ "cms": "..." }`
+  - returns token + student/channel metadata
 
-**Fix:** reclassify the sender's channel after reallocation and apply a three-way delivery policy on the post-decision state:
+- `POST /logout`
+  - body: `{ "token": "..." }`
 
-| Post-decision status | Delivery outcome |
-|---|---|
-| FREE / BUSY | `DELIVERED_AFTER_STABILIZATION` |
-| CONGESTED | `DELIVERED_CHANNEL_DEGRADED` |
-| JAMMED | `REJECTED_CHANNEL_JAMMED` |
+### Channels
 
-#### Bug Fix — Snapshot Timing Consistency (`signal_physics.py`)
+- `GET /channel/state`
+- `POST /channel/join?token=...`
+- `POST /channel/message`
+- `GET /channel/{id}/messages`
+- `GET /channel/{id}/members`
+- `GET /students?token=...`
 
-`get_channel_energy_snapshot` and `project_channel_energy` each called `time.time()` independently per member, so a snapshot could span a decay-tick boundary mid-loop and mix values from different ticks.
+### Admin
 
-**Fix:** both functions now accept `now: float | None = None`; one timestamp is captured at the top and passed to every per-student decay call.
+- `POST /admin/verify`
+- `POST /admin/jam`
+- `POST /admin/unjam`
+- `POST /admin/reallocate`
+- `POST /admin/simulate_load`
+- `GET /admin/students?admin_key=...`
 
-#### Bug Fix — Shared Timestamp Through `process_message` (`main.py`)
+### WebSocket
 
-`process_message()` was calling decay, classify, and reallocate with separate implicit `time.time()` calls that could cross a tick boundary mid-request.
+- `ws://host:port/ws/{token}` (student realtime DM)
+- `ws://host:port/ws/spectrum` (admin telemetry stream)
 
-**Fix:** `message_now = time.time()` captured once at the top and passed to `apply_decay_to_student`, `classify_channel`, and `reallocate_users`. The post-reallocation reclassify intentionally uses a fresh `post_now` because the channel topology has actually changed.
+---
 
-#### Bug Fix — Recipient DM Metadata Consistency (`main.py`)
+## API Examples (curl)
 
-The recipient's `signal` dict used the pre-reallocation `result` while the sender's `MESSAGE_RESULT` used `final_result`. Both clients could see different channel health metadata for the same delivered message.
+Set a base URL:
 
-**Fix:** both sender and recipient now use `final_result` (the canonical post-decision classification). `modulation` also added to the sender's `classification` dict.
+```bash
+BASE="http://127.0.0.1:8080"
+```
 
-#### Phase 3 — Deterministic Optimal Destination Selection (`allocator.py`)
+### 1) Login
 
-`_find_valid_destination` previously returned the first channel that passed the health check, which was dict-iteration order — non-deterministic.
+```bash
+curl -s -X POST "$BASE/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"cms":"458214"}'
+```
 
-**Fix:** collects all valid (healthy-after-move) destinations and sorts them by `(total_energy, confidence, channel_key)` to always pick the lowest-load channel deterministically.
+Save token from response:
 
-#### Test Suite — 40 Tests, All Passing (`test_all.py`)
+```bash
+TOKEN="paste_token_here"
+```
 
-| Group | Tests |
-|---|---|
-| Channel registry | 2 |
-| Signal physics | 4 |
-| Classifier | 3 |
-| Auth | 2 |
-| Allocator Phase 1 | 3 |
-| Phase 2 idle decay | 8 |
-| Bug fixes | 6 |
-| Phase 3 decision engine | 12 |
+### 2) Join channel
 
-Six coverage gaps closed in Phase 3 tests: sort tie-breaker, multi-move before recovery, admin-forced JAMMED evacuation, pointer wraparound, no-valid-destination (unsafe channels), and empty source channel.
+```bash
+curl -s -X POST "$BASE/channel/join?token=$TOKEN"
+```
 
-#### Terminal Dashboard (`terminal_dashboard.py`) — New File
+### 3) List students (authenticated)
 
-A live ASCII admin portal renders in the terminal every 4 seconds when the server is running.
+```bash
+curl -s "$BASE/students?token=$TOKEN"
+```
 
-- ASCII art banner with the server URL printed in **red**
-- Per-channel energy progress bars coloured by status (green = FREE, yellow = BUSY, red = CONGESTED, magenta = JAMMED), showing energy, user count, SNR, modulation, and frequency
-- Per-active-student energy bars that shift green → yellow → red as energy rises
-- Live message feed showing the last 8 messages with timestamp, sender → recipient, channel, energy, status, and delivery outcome — all colour-coded
-- Refreshes every 4 seconds via a background asyncio task started in the FastAPI lifespan
-- `record_message()` called from `process_message()` after every DM attempt so the feed updates in real time
-- Pure display module — no business logic, no state mutation
+### 4) Get channel state
+
+```bash
+curl -s "$BASE/channel/state"
+```
+
+### 5) Send DM (REST fallback)
+
+```bash
+curl -s -X POST "$BASE/channel/message" \
+  -H "Content-Type: application/json" \
+  -d "{\"token\":\"$TOKEN\",\"to\":\"481862\",\"text\":\"Hello from curl\"}"
+```
+
+### 6) Verify admin access
+
+```bash
+curl -s -X POST "$BASE/admin/verify" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_key":"admin"}'
+```
+
+### 7) Force jam a channel
+
+```bash
+curl -s -X POST "$BASE/admin/jam" \
+  -H "Content-Type: application/json" \
+  -d '{"channel_key":"CH-1","admin_key":"admin"}'
+```
+
+### 8) Unjam a channel
+
+```bash
+curl -s -X POST "$BASE/admin/unjam" \
+  -H "Content-Type: application/json" \
+  -d '{"channel_key":"CH-1","admin_key":"admin"}'
+```
+
+### 9) Trigger manual reallocation
+
+```bash
+curl -s -X POST "$BASE/admin/reallocate" \
+  -H "Content-Type: application/json" \
+  -d '{"channel_key":"CH-2","admin_key":"admin"}'
+```
+
+### 10) Simulate load
+
+```bash
+curl -s -X POST "$BASE/admin/simulate_load" \
+  -H "Content-Type: application/json" \
+  -d '{"admin_key":"admin","energy_per_student":8}'
+```
+
+---
+
+## Important Event Types
+
+Student websocket receives:
+
+- `CONNECTED`
+- `DM`
+- `MESSAGE_RESULT`
+- `REALLOCATED`
+- `SYSTEM` (`CHANNEL_JAMMED`, `CHANNEL_REBALANCED`, etc.)
+- `ERROR`
+
+Spectrum websocket receives:
+
+- `SPECTRUM_HISTORY` (on connect)
+- `SPECTRUM_TICK` (periodic live updates)
+
+---
+
+## Deployment Guide
+
+### Option A: Uvicorn (simple production-ish start)
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8080 --workers 1
+```
+
+Notes:
+- Keep workers at `1` unless you redesign shared in-memory state (`channels.py`, live connections, in-memory energy maps) for multi-process coordination.
+- If multiple workers are required, use shared state (Redis/pubsub + centralized state) before scaling out.
+
+### Option B: Gunicorn + Uvicorn worker
+
+```bash
+gunicorn main:app \
+  -k uvicorn.workers.UvicornWorker \
+  -b 0.0.0.0:8080 \
+  --workers 1 \
+  --timeout 60
+```
+
+### Reverse proxy (Nginx)
+
+Use Nginx in front for TLS and stable websocket proxying.
+
+Minimal location example:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+```
+
+### Environment variables for deployment
+
+```bash
+export COGNIRAD_ADMIN_PASSWORD="change-me"
+export COGNIRAD_HOST="your-server-hostname"
+export COGNIRAD_PORT="8080"
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:COGNIRAD_ADMIN_PASSWORD="change-me"
+$env:COGNIRAD_HOST="your-server-hostname"
+$env:COGNIRAD_PORT="8080"
+```
+
+### Recommended hardening checklist
+
+- Change default admin password.
+- Restrict CORS origins (current backend allows all origins).
+- Serve behind HTTPS.
+- Add request rate-limiting for auth/admin routes.
+- Add centralized logging and process supervision.
+- Back up `cognirad.db` if persistence matters in your environment.
+
+---
+
+## Testing
+
+Run complete test suite:
+
+```bash
+pytest test_all.py --asyncio-mode=auto -v
+```
+
+Interactive test run:
+
+```bash
+python test_all.py
+```
+
+---
+
+## Troubleshooting
+
+### App stuck on loading screen
+
+- Hard refresh browser (`Ctrl+F5`)
+- Verify backend is running and reachable on `127.0.0.1:8080`
+- Check browser console/network for:
+  - `/students` response,
+  - `/channel/state` response,
+  - websocket handshake status.
+
+### Login fails
+
+- CMS must exist in `students.json`
+- Re-run app so DB seed loads from `students.json`
+
+### Messages rejected
+
+- Sender may be on degraded/jammed channel
+- Inspect `delivery_status` and `classification` in message result
+
+### Admin actions fail
+
+- Ensure `admin_key` matches `COGNIRAD_ADMIN_PASSWORD`
+
+---
+
+## Development Notes
+
+- This repo may contain additional planning/docs artifacts under `planning/` and `documentation/`.
+- `decompiled_main.py` is not the runtime entrypoint; use `main.py`.
+- Frontend session state is kept in `sessionStorage`.
+- Runtime DB file is `cognirad.db` in project root.
+
+---
+
+## License
+
+Use and distribution policy depends on your course/team context.  
+Add your preferred license file (`MIT`, `Apache-2.0`, etc.) if needed.
+
