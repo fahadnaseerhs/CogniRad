@@ -106,13 +106,13 @@
   const buf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    -1, -1,  1, -1, -1,  1,
-    -1,  1,  1, -1,  1,  1
+    -1, -1, 1, -1, -1, 1,
+    -1, 1, 1, -1, 1, 1
   ]), gl.STATIC_DRAW);
 
-  const posLoc  = gl.getAttribLocation(program, 'a_pos');
+  const posLoc = gl.getAttribLocation(program, 'a_pos');
   const timeLoc = gl.getUniformLocation(program, 'u_time');
-  const resLoc  = gl.getUniformLocation(program, 'u_res');
+  const resLoc = gl.getUniformLocation(program, 'u_res');
 
   gl.enableVertexAttribArray(posLoc);
   gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
@@ -124,7 +124,7 @@
   let startTime = performance.now();
 
   function resize() {
-    canvas.width  = window.innerWidth;
+    canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     gl.viewport(0, 0, canvas.width, canvas.height);
   }
@@ -147,15 +147,16 @@
 /* ── FORM LOGIC ──────────────────────────────────────────── */
 (function initLogin() {
 
-  const API_BASE = window.COGNIRAD_API || 'http://localhost:8000';
+  const API_BASE = window.location.origin;
+  const REQUEST_TIMEOUT_MS = 12000;
 
   // DOM refs
-  const form        = document.getElementById('login-form');
-  const input       = document.getElementById('cms-input');
-  const btn         = document.getElementById('login-btn');
-  const btnText     = document.getElementById('btn-text');
-  const errorMsg    = document.getElementById('error-msg');
-  const loadingOv   = document.getElementById('loading-overlay');
+  const form = document.getElementById('login-form');
+  const input = document.getElementById('cms-input');
+  const btn = document.getElementById('login-btn');
+  const btnText = document.getElementById('btn-text');
+  const errorMsg = document.getElementById('error-msg');
+  const loadingOv = document.getElementById('loading-overlay');
 
   if (!form) return;
 
@@ -179,6 +180,19 @@
   }
 
   /* ── Auth flow ───────────────────────────────────────── */
+  async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     clearError();
@@ -195,10 +209,10 @@
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method:  'POST',
+      const res = await fetchWithTimeout(`${API_BASE}/auth/login`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ cms_id: cms })
+        body: JSON.stringify({ cms_id: cms, cms: cms })
       });
 
       if (!res.ok) {
@@ -209,19 +223,46 @@
       const data = await res.json();
 
       // Write everything app.html will need
-      sessionStorage.setItem('cognirad_token',    data.token);
-      sessionStorage.setItem('cognirad_cms',      cms);
-      sessionStorage.setItem('cognirad_name',     data.student_name  || cms);
-      sessionStorage.setItem('cognirad_channel',  data.channel_id    || '');
-      sessionStorage.setItem('cognirad_freq',     data.channel_freq  || '');
-      sessionStorage.setItem('cognirad_status',   data.channel_status || 'FREE');
+      sessionStorage.setItem('cognirad_token', data.token);
+      sessionStorage.setItem('cognirad_cms', cms);
+      sessionStorage.setItem('cognirad_name', data.student_name || cms);
+      sessionStorage.setItem('cognirad_channel', data.channel_id || '');
+      sessionStorage.setItem('cognirad_freq', data.channel_freq || '');
+      sessionStorage.setItem('cognirad_status', data.channel_status || 'FREE');
+
+      // Try to assign channel, but never block app navigation on this.
+      // app.js will retry assignment during startup if still missing.
+      try {
+        const channelRes = await fetchWithTimeout(`${API_BASE}/channel/join?token=${data.token}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }, 6000);
+
+        if (channelRes.ok) {
+          const channelData = await channelRes.json();
+          sessionStorage.setItem('cognirad_channel', channelData.channel_key || '');
+          sessionStorage.setItem('cognirad_freq', channelData.frequency || '');
+          sessionStorage.setItem('cognirad_status', channelData.status || 'FREE');
+          sessionStorage.setItem('cognirad_needs_channel_join', '0');
+        } else {
+          sessionStorage.setItem('cognirad_needs_channel_join', '1');
+        }
+      } catch (_) {
+        sessionStorage.setItem('cognirad_needs_channel_join', '1');
+      }
 
       // Show loading transition then navigate
       transitionToApp();
 
     } catch (err) {
       setLoading(false);
-      showError(err.message || 'Connection failed');
+      showError(
+        err.name === 'AbortError'
+          ? 'Backend did not respond. Start the FastAPI server and try again.'
+          : (err.message || 'Connection failed')
+      );
     }
   }
 
@@ -263,5 +304,19 @@
 
   /* ── Focus input on load ─────────────────────────────── */
   setTimeout(() => input.focus(), 300);
+
+  /* ── Auto-Login ──────────────────────────────────────── */
+  const urlParams = new URLSearchParams(window.location.search);
+  const autoCms = urlParams.get('auto_login');
+  const isBot = urlParams.get('bot') === 'true';
+
+  if (isBot) {
+    sessionStorage.setItem('cognirad_bot', 'true');
+  }
+
+  if (autoCms) {
+    input.value = autoCms;
+    btn.click();
+  }
 
 })();
