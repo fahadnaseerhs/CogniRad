@@ -1,0 +1,1117 @@
+INFO:     Will watch for changes in these directories: ['C:\\Users\\USER\\OneDrive\\Desktop\\CogniRad']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [3868] using WatchFiles
+INFO:     Started server process [32960]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:52409 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56471 - "WebSocket /ws/MEbnqS8ON_NMYnzDgT1O2qfvT2hZPBbGOw8oh56rxrY" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:54173 - "WebSocket /ws/ydVI-m-UP6dkAzPZ7QHe1QBCiiIm6Th9GUgvQu_KGJw" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:49414 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52808 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51719 - "WebSocket /ws/UMpLQI9tQj68xhTNtY54HZBc0FmA2acYZeiO2_rCeOg" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:53223 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60789 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56862 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49628 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49416 - "WebSocket /ws/1Km3YsvR4iSkSXi3QVLnFTSnotb1okGxXimXQhJWQKc" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:63134 - "WebSocket /ws/vqb6-pD0SCrxllZoTgs5KSsOPBzBAFComUoclFGO-bE" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:61449 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53079 - "WebSocket /ws/6B3wp-jLZxo88nvY6KC94sTtYwxXUL4TQ6DWRVqNN9g" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:50234 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53085 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61763 - "WebSocket /ws/n6uftB6b1rYwPrhH_06sE0rjyMzc8SGzrK4YF5NGpiI" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:60763 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52188 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57335 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61362 - "WebSocket /ws/AOWaSxhKKcWTwYzYXYOMQqHmYtGNuS5A-OTdlgjduUE" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:54288 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63468 - "WebSocket /ws/S3Petphqnwgu77_c_U1OCcZuWDNtnFX85gybyI5mQww" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:58959 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52516 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53035 - "WebSocket /ws/u13WNB2Io6TiBBurBYZ8Z3X5-93v3sleC1YawFdVNr4" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:64135 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60663 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59158 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55005 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53250 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55050 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60544 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65126 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49511 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61405 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63604 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63603 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61300 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63955 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57890 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61991 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57342 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50759 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62280 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56207 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60668 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50687 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64970 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62899 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61394 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61789 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54652 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65127 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51113 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58987 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54575 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64428 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64761 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54445 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55330 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54421 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57055 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63295 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59183 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64190 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58293 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50224 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65021 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65320 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49986 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60638 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58250 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54467 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61274 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50431 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64699 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59752 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63446 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61860 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60593 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59151 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64265 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50811 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57859 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56096 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61999 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65391 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54514 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57052 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49966 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55215 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61573 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56642 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51675 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52746 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52434 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49517 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60275 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58480 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53492 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63169 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57295 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58832 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56473 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55875 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60108 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53481 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50969 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49580 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61628 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58271 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56240 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57558 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61759 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63993 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50949 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65233 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51709 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62853 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63444 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51912 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59906 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55189 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61425 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49326 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58947 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53093 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62389 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64925 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62816 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60432 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53973 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52462 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56453 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51050 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56376 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64100 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56843 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60000 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52121 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57963 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57398 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54138 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53714 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58710 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49811 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59638 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56228 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54289 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53781 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53276 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61959 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53833 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50898 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58024 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57441 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56896 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57751 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56944 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64055 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56067 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62845 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58436 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60470 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64476 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58979 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54497 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52592 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63761 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55677 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53184 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49992 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56253 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63902 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64312 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56592 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49494 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60785 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56506 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59581 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50464 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63985 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55033 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63390 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59861 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55332 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63261 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59563 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62069 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60716 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60187 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57986 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53717 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57667 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53044 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63669 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52852 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58198 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62172 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60008 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54490 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49612 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55552 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54394 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63948 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54998 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63375 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60390 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63706 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51833 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55900 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54475 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61037 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50194 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62184 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58373 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57273 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50890 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57620 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52213 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56903 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52403 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60843 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64191 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55119 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52125 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62565 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55684 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51761 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57198 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59538 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56174 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60955 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56101 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62984 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56853 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57105 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59371 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63038 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57424 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63659 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55909 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61545 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52122 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55875 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54383 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51602 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60423 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59305 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50508 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60560 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51657 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52527 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57952 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49338 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64741 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57896 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62700 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62584 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50268 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55488 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60708 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62567 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62526 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63110 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56968 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57098 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63204 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61920 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49733 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58084 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62329 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61734 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64037 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57164 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65165 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56610 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61513 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57833 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58105 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56701 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59944 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:54649 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61016 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65309 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62542 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64156 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61797 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64236 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51405 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59783 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49267 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64692 - "WebSocket /ws/XECwOXWg92drJ6Djwk0ob96ui6ederfJ_sJgIw1LI7A" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62037 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57032 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:51413 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58225 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:65063 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60575 - "WebSocket /ws/BNtrO_PeiMQhDjUKFMaUS3teozo8W_ODbOSOW-45MJE" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59896 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49204 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62655 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58413 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50319 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:64200 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52006 - "WebSocket /ws/4oIIOiQvc8MhV-_qhNnqcHmlJzrNmTTqixH9iBgV3-U" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52820 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     127.0.0.1:53543 - "WebSocket /ws/wEqJwp_5r5ddn9s5hbRQGC35iUxIh0BE7UITp9Uswug" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49647 - "WebSocket /ws/S_U2A5zkKRQGrxcukE0To6MHPp91twyYiG18fpUhn_Q" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53885 - "WebSocket /ws/G3gCxjzpt3twRhWQWkuV_HkuHV-ncBUe-bziW3ShxRI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53746 - "WebSocket /ws/XAdIycO8SvUFkgUPrP5SfaXsMhsISZ13rSQBk4JMgVw" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61762 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61616 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56760 - "WebSocket /ws/I_nAHcc7qQxDWzR4qpVw98DkcHPlS7Al7s4NsvEbshY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52628 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:49626 - "WebSocket /ws/Mvc1GyAIlLzTWxreTh50SF5nPEKA4xBoYpXTk0j5390" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57368 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:53037 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59930 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     127.0.0.1:50901 - "WebSocket /ws/m6YpDlZrgXL9M8vhsIkTR9ljd2xABEYBsuzSH2pKjgI" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60444 - "WebSocket /ws/5LupXOA5EOTCeH4s6EnQR0S_yFaiNc1gT3qZU0bY550" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58119 - "WebSocket /ws/EfWYOmvvShXg-4drmFHAwGFoTF_ESdKlXMqvVj03nPU" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:57207 - "WebSocket /ws/KWFeZuWuzgRGrfQ0FkHjac7zgZgc6sunNCsucNj7wdQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59453 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55714 - "WebSocket /ws/XVPHni4czrCeo25vICs24tvUJLCG6_SLynFJq8TyyrQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     127.0.0.1:61874 - "WebSocket /ws/L3JpXNqV_q2zbhc0HqYD-VU83U_S4MqoG92xNfJNDY8" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+INFO:     connection closed
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [32960]
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\USER\OneDrive\Desktop\CogniRad\main.py", line 49, in <module>
+    import allocator
+  File "C:\Users\USER\OneDrive\Desktop\CogniRad\allocator.py", line 43, in <module>
+    import database
+  File "C:\Users\USER\OneDrive\Desktop\CogniRad\database.py", line 6, in <module>
+    from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, delete, select, text
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\__init__.py", line 12, in <module>
+    from . import util as _util
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\__init__.py", line 14, in <module>
+    from ._collections import coerce_generator_arg as coerce_generator_arg
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\_collections.py", line 38, in <module>
+    from ._has_cy import HAS_CYEXTENSION
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\_has_cy.py", line 32, in <module>
+    _import_cy_extensions()
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\_has_cy.py", line 20, in _import_cy_extensions
+    from ..cyextension import util
+  File "lib/sqlalchemy/cyextension/util.pyx", line 9, in init sqlalchemy.cyextension.util
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\exc.py", line 26, in <module>
+    from .util import compat
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\util\compat.py", line 51, in <module>
+    arm = "aarch" in platform.machine().lower()
+                     ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\platform.py", line 1024, in machine
+    return uname().machine
+           ^^^^^^^
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\platform.py", line 922, in uname
+    release, version, csd, ptype = win32_ver()
+                                   ^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\platform.py", line 450, in win32_ver
+    version, csd, ptype, is_client = _win32_ver(version, csd, ptype)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\platform.py", line 388, in _win32_ver
+    (version, product_type, ptype, spmajor, spminor)  = _wmi_query(
+                                                        ^^^^^^^^^^^
+  File "C:\Users\USER\AppData\Local\Programs\Python\Python312\Lib\platform.py", line 327, in _wmi_query
+    data = _wmi.exec_query("SELECT {} FROM {}".format(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+INFO:     Started server process [16948]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:52066 - "WebSocket /ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:61200 - "WebSocket /ws/0jj7EKYHKf0CVixPOgl4pcsW48AajTbmLQsO58hkzNE" [accepted]
+INFO:     connection open
+INFO:     connection closed
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16948]
+INFO:     Started server process [16732]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16732]
+INFO:     Started server process [30088]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [30088]
+INFO:     Started server process [28940]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28940]
+INFO:     Started server process [32736]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:65090 - "WebSocket /admin/ws/spectrum?admin_key=admin" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63139 - "WebSocket /ws/spectrum" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62613 - "WebSocket /ws/spectrum" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52193 - "WebSocket /ws/spectrum" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:55442 - "WebSocket /ws/spectrum" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:56215 - "WebSocket /ws/spectrum" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:63020 - "WebSocket /ws/spectrum" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:52606 - "WebSocket /ws/spectrum" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:59990 - "WebSocket /ws/spectrum" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:62119 - "WebSocket /ws/tSj2VzRfsTXSVxY8ao9m_vMw74gQEnpwAEOH8rnTiWA" [accepted]
+INFO:     connection open
+INFO:     connection closed

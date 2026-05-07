@@ -24,3 +24,14 @@ cognirad.db-wal
 *.pt
 *.hdf5
 ml/dataset/
+
+# Deployment artifacts
+cognirad_qr.png
+cognirad_qr_code.png
+
+# Keep deployment configs
+!render.yaml
+!Procfile
+!railway.toml
+!fly.toml
+!runtime.txt
