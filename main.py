@@ -53,7 +53,14 @@ import channels as ch_mod
 import classifier
 import database
 import signal_physics as sp
-import terminal_dashboard as dashboard
+
+# Optional: terminal dashboard for local development
+try:
+    import terminal_dashboard as dashboard
+    DASHBOARD_AVAILABLE = True
+except ImportError:
+    DASHBOARD_AVAILABLE = False
+    dashboard = None
 
 logger = logging.getLogger("cognirad")
 
@@ -81,11 +88,17 @@ async def _lifespan(application: FastAPI):
     await database.init_db()
     # Start the background AI loop
     task = asyncio.create_task(_ai_loop())
-    # Start the terminal dashboard (reads host/port from uvicorn config)
-    _host = os.environ.get("COGNIRAD_HOST", "127.0.0.1")
-    _port = int(os.environ.get("COGNIRAD_PORT", "8080"))
-    dashboard.set_server_url(_host, _port)
-    dashboard.start_dashboard()
+    
+    # Start terminal dashboard if available (local dev only)
+    if DASHBOARD_AVAILABLE:
+        _host = os.environ.get("COGNIRAD_HOST", "127.0.0.1")
+        _port = int(os.environ.get("COGNIRAD_PORT", "8080"))
+        dashboard.set_server_url(_host, _port)
+        dashboard.start_dashboard()
+        logger.info("Terminal dashboard started for local development")
+    else:
+        logger.info("Terminal dashboard not available (deployment mode)")
+    
     yield
     task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
@@ -497,20 +510,21 @@ async def process_message(
     # Both this dict and the recipient DM above use it, so sender and
     # recipient always see the same channel health metadata.
 
-    # Feed the live terminal dashboard with this message event.
-    dashboard.record_message(
-        sender=sender_cms,
-        recipient=recipient_cms,
-        channel=channel_key,
-        energy=msg_energy,
-        status=final_result["status"],
-        delivery=delivery_status,
-        bitrate_bps=phy_event["bitrate_bps"],
-        dt_seconds=phy_event["dt_seconds"],
-        utilization=phy_event["utilization"],
-        band=phy_event["band"],
-        modulation=final_result["modulation"],
-    )
+    # Feed the live terminal dashboard with this message event (if available)
+    if DASHBOARD_AVAILABLE:
+        dashboard.record_message(
+            sender=sender_cms,
+            recipient=recipient_cms,
+            channel=channel_key,
+            energy=msg_energy,
+            status=final_result["status"],
+            delivery=delivery_status,
+            bitrate_bps=phy_event["bitrate_bps"],
+            dt_seconds=phy_event["dt_seconds"],
+            utilization=phy_event["utilization"],
+            band=phy_event["band"],
+            modulation=final_result["modulation"],
+        )
     RECENT_DMS.append(
         {
             "from": sender_cms,
