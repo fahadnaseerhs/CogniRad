@@ -1,4 +1,4 @@
-﻿// CogniRad Admin Dashboard — Spectrum Control v10
+// CogniRad Admin Dashboard — Spectrum Control v10
 // ═══════════════════════════════════════════════════════════════════════════
 // CogniRad Admin Dashboard — Spectrum Control  v10
 // ═══════════════════════════════════════════════════════════════════════════
@@ -14,6 +14,23 @@ const CH_COLORS = {
   'CH-4': '#ff5e67',
   'CH-5': '#b48cff',
 };
+
+// 5G Network Slicing labels for presentation
+const SLICE_NAMES = {
+  'CH-1': 'PU — eMBB Slice',
+  'CH-2': 'SU — URLLC Slice',
+  'CH-3': 'SU — mMTC Slice',
+  'CH-4': 'V2X Edge Slice',
+  'CH-5': 'Public Safety',
+};
+const SLICE_SHORT = {
+  'CH-1': 'eMBB',
+  'CH-2': 'URLLC',
+  'CH-3': 'mMTC',
+  'CH-4': 'V2X',
+  'CH-5': 'Safety',
+};
+
 // sqrt(N) dynamic jammed ceiling coefficient (matches classifier.py _DELTA=35)
 const JAMMED_COEFF = 35.0;
 
@@ -247,6 +264,7 @@ async function loadChannels() {
   renderChannels();
   updateMetrics();
   pushSnapshotToHistory(channels);
+  drawAllCharts();
 }
 
 async function loadStudents() {
@@ -284,7 +302,7 @@ function renderChannels() {
     return `
       <article class="channel-card status-${status}" style="--ch-color:${color}" data-ch="${key}">
         <div class="channel-top">
-          <div class="channel-name">${key}</div>
+          <div class="channel-name">${SLICE_NAMES[key] || key}<span class="ch-key-sub">${key}</span></div>
           <div class="status-pill ${statusClass(status)}">${status}</div>
         </div>
         <div class="channel-freq">${ch.frequency || '--'}</div>
@@ -575,13 +593,13 @@ function addReallocChip(ev) {
 
 // ── Chart legends ──────────────────────────────────────────────────────────
 function buildLegends() {
-  ['energy-legend', 'snr-legend', 'slope-legend', 'member-legend'].forEach(id => {
+  ['energy-legend', 'snr-legend', 'slope-legend', 'member-legend', 'radar-legend'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.innerHTML = CHANNELS.map(ch => `
       <div class="legend-item">
         <div class="legend-dot" style="background:${CH_COLORS[ch]}"></div>
-        ${ch}
+        ${SLICE_SHORT[ch] || ch}
       </div>
     `).join('');
   });
@@ -593,13 +611,13 @@ function drawAllCharts() {
   drawLineChart('snr-chart', 'snr', 'dB', 0, 32);
   drawLineChart('slope-chart', 'slope', 'J/s', null, null);
   drawLineChart('member-chart', 'members', 'students', 0, null);
+  drawRadarChart();
 }
 
 function drawLineChart(canvasId, key, unit, fixedMin = null, fixedMax = null) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
 
-  // Resize canvas to match CSS size
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   canvas.width = rect.width * dpr;
@@ -633,23 +651,18 @@ function drawLineChart(canvasId, key, unit, fixedMin = null, fixedMax = null) {
   const span = maxV - minV;
 
   // Grid lines + Y labels
-
   const gridLines = 5;
   ctx.font = `11px 'JetBrains Mono', monospace`;
   ctx.textAlign = 'right';
   for (let i = 0; i <= gridLines; i++) {
     const y = pad.top + (plotH / gridLines) * i;
     const val = maxV - (span / gridLines) * i;
-
-    // Grid line
     ctx.strokeStyle = '#1e2733';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(pad.left, y);
     ctx.lineTo(W - pad.right, y);
     ctx.stroke();
-
-    // Y label
     ctx.fillStyle = '#4a5568';
     ctx.fillText(
       key === 'members' ? Math.round(val).toString() : val.toFixed(1),
@@ -671,54 +684,71 @@ function drawLineChart(canvasId, key, unit, fixedMin = null, fixedMax = null) {
     ctx.setLineDash([]);
   }
 
-  // Draw each channel line
+  // Helper: compute XY points for a series
+  function seriesPoints(series) {
+    return series.map((v, i) => ({
+      x: pad.left + (series.length === 1 ? 0 : (plotW * i) / (series.length - 1)),
+      y: pad.top + plotH - ((v - minV) / span) * plotH,
+    }));
+  }
+
+  // Draw each channel line with bezier smoothing + neon glow
   CHANNELS.forEach(ch => {
     const series = history[ch][key];
     if (!series.length) return;
 
     const color = CH_COLORS[ch];
-    const pts = series.length;
+    const pts = seriesPoints(series);
 
-    // Filled area under line
+    // ── Gradient fill under curve ──
     ctx.beginPath();
-    series.forEach((v, i) => {
-      const x = pad.left + (pts === 1 ? 0 : (plotW * i) / (pts - 1));
-      const y = pad.top + plotH - ((v - minV) / span) * plotH;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    // Close path to bottom for fill
-    const lastX = pad.left + plotW;
-    const baseY = pad.top + plotH;
-    ctx.lineTo(lastX, baseY);
-    ctx.lineTo(pad.left, baseY);
+    if (pts.length === 1) {
+      ctx.moveTo(pts[0].x, pts[0].y);
+    } else {
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        const cpx = (pts[i - 1].x + pts[i].x) / 2;
+        ctx.bezierCurveTo(cpx, pts[i - 1].y, cpx, pts[i].y, pts[i].x, pts[i].y);
+      }
+    }
+    const lastPt = pts[pts.length - 1];
+    ctx.lineTo(lastPt.x, pad.top + plotH);
+    ctx.lineTo(pts[0].x, pad.top + plotH);
     ctx.closePath();
-    ctx.fillStyle = color + '18'; // ~10% opacity fill
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + plotH);
+    grad.addColorStop(0, color + '30');
+    grad.addColorStop(1, color + '02');
+    ctx.fillStyle = grad;
     ctx.fill();
 
-    // Line stroke
+    // ── Neon glow line ──
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
-    series.forEach((v, i) => {
-      const x = pad.left + (pts === 1 ? 0 : (plotW * i) / (pts - 1));
-      const y = pad.top + plotH - ((v - minV) / span) * plotH;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
+    if (pts.length === 1) {
+      ctx.moveTo(pts[0].x, pts[0].y);
+    } else {
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        const cpx = (pts[i - 1].x + pts[i].x) / 2;
+        ctx.bezierCurveTo(cpx, pts[i - 1].y, cpx, pts[i].y, pts[i].x, pts[i].y);
+      }
+    }
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.lineJoin = 'round';
     ctx.stroke();
+    ctx.restore();
 
     // Dot at latest point
-    if (pts > 0) {
-      const lastV = series[pts - 1];
-      const dotX = pad.left + plotW;
-      const dotY = pad.top + plotH - ((lastV - minV) / span) * plotH;
-      ctx.beginPath();
-      ctx.arc(dotX, dotY, 3, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-    }
+    ctx.beginPath();
+    ctx.arc(lastPt.x, lastPt.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#07090d';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   });
 
   // X axis — latest timestamp label
@@ -733,6 +763,135 @@ function drawLineChart(canvasId, key, unit, fixedMin = null, fixedMax = null) {
   ctx.fillStyle = '#2b3340';
   ctx.font = '10px monospace';
   ctx.fillText(unit, W - pad.right, pad.top - 2);
+}
+
+// ── Radar / Spider chart ───────────────────────────────────────────────────
+function drawRadarChart() {
+  const canvas = document.getElementById('radar-chart');
+  if (!canvas) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const W = rect.width;
+  const H = rect.height;
+  const cx = W / 2;
+  const cy = H / 2;
+  const R = Math.min(W, H) / 2 - 40;
+
+  // Background
+  ctx.fillStyle = '#07090d';
+  ctx.fillRect(0, 0, W, H);
+
+  const n = CHANNELS.length;
+  const angleStep = (Math.PI * 2) / n;
+  const startAngle = -Math.PI / 2; // top
+
+  // Get max energy for normalization
+  const energies = CHANNELS.map(ch => {
+    const e = history[ch].energy;
+    return e.length ? e[e.length - 1] : 0;
+  });
+  const maxE = Math.max(...energies, 1);
+
+  // Draw concentric rings (20%, 40%, 60%, 80%, 100%)
+  for (let ring = 1; ring <= 5; ring++) {
+    const r = (R * ring) / 5;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const angle = startAngle + angleStep * (i % n);
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = ring === 5 ? '#2b3340' : '#161b24';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Percentage label
+    ctx.fillStyle = '#2b3340';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${ring * 20}%`, cx + 3, cy - r + 10);
+  }
+
+  // Draw axis spokes + labels
+  CHANNELS.forEach((ch, i) => {
+    const angle = startAngle + angleStep * i;
+    const xEnd = cx + R * Math.cos(angle);
+    const yEnd = cy + R * Math.sin(angle);
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(xEnd, yEnd);
+    ctx.strokeStyle = '#1e2733';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Label
+    const labelR = R + 20;
+    const lx = cx + labelR * Math.cos(angle);
+    const ly = cy + labelR * Math.sin(angle);
+    ctx.fillStyle = CH_COLORS[ch];
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(SLICE_SHORT[ch] || ch, lx, ly);
+  });
+
+  // Draw filled polygon for current energy
+  const normalized = energies.map(e => e / maxE);
+
+  ctx.beginPath();
+  normalized.forEach((val, i) => {
+    const angle = startAngle + angleStep * i;
+    const r = R * Math.max(val, 0.02); // min visible
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+
+  // Gradient fill
+  const rGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+  rGrad.addColorStop(0, 'rgba(103,168,255,0.08)');
+  rGrad.addColorStop(1, 'rgba(103,168,255,0.25)');
+  ctx.fillStyle = rGrad;
+  ctx.fill();
+
+  // Glowing border
+  ctx.save();
+  ctx.shadowColor = '#67a8ff';
+  ctx.shadowBlur = 12;
+  ctx.strokeStyle = 'rgba(103,168,255,0.7)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  // Dots at each vertex
+  normalized.forEach((val, i) => {
+    const angle = startAngle + angleStep * i;
+    const r = R * Math.max(val, 0.02);
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    const color = CH_COLORS[CHANNELS[i]];
+
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#07090d';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────

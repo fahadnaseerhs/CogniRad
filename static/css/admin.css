@@ -739,3 +739,25 @@ td:last-child { text-align: right; }
   gap: 8px;
 }
 .input-action input { flex: 1; }
+
+/* ── 5G Slice channel name sub-label ──────────────────────────────────── */
+.ch-key-sub {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.channel-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ch-color, var(--ch1));
+  line-height: 1.3;
+}
+
+/* ── Radar chart ──────────────────────────────────────────────────────── */
+.chart-wrap-radar canvas {
+  height: 320px;
+}

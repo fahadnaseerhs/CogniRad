@@ -43,7 +43,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -125,6 +125,18 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+@app.get("/", include_in_schema=False)
+async def serve_root():
+    """Redirect root domain to the student application."""
+    return RedirectResponse(url="/static/index.html")
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def serve_favicon():
+    """Serve a placeholder favicon or ignore."""
+    # To prevent 404 logs from browser requests
+    from fastapi import Response
+    return Response(content=b"", media_type="image/x-icon")
 
 @app.get("/admin", include_in_schema=False)
 async def admin_dashboard() -> FileResponse:
